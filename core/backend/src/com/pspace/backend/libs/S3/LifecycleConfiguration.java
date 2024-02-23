@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.S3;
+package com.pspace.backend.libs.s3;
 
 import java.util.Collection;
 
@@ -28,7 +28,7 @@ public final class LifecycleConfiguration {
 
 		public static final class AbortIncompleteMultipartUpload {
 			@JacksonXmlProperty(localName = "DaysAfterInitiation")
-			public String DaysAfterInitiation;
+			public String daysAfterInitiation;
 		}
 
 		@JacksonXmlProperty(localName = "Expiration")
@@ -42,7 +42,7 @@ public final class LifecycleConfiguration {
 			public String days;
 
 			@JacksonXmlProperty(localName = "ExpiredObjectDeleteMarker")
-			public String ExpiredObjectDeleteMarker;
+			public String expiredObjectDeleteMarker;
 		}
 
 		@JacksonXmlProperty(localName = "Filter")
@@ -104,7 +104,7 @@ public final class LifecycleConfiguration {
 
 		public static final class NoncurrentVersionExpiration {
 			@JacksonXmlProperty(localName = "NewerNoncurrentVersions")
-			public String NewerNoncurrentVersions;
+			public String newerNoncurrentVersions;
 
 			@JacksonXmlProperty(localName = "NoncurrentDays")
 			public String days;
@@ -115,13 +115,13 @@ public final class LifecycleConfiguration {
 
 		public static final class NoncurrentVersionTransition {
 			@JacksonXmlProperty(localName = "NewerNoncurrentVersions")
-			public int NewerNoncurrentVersions;
+			public int newerNoncurrentVersions;
 
 			@JacksonXmlProperty(localName = "NoncurrentDays")
-			public String NoncurrentDays;
+			public String noncurrentDays;
 
 			@JacksonXmlProperty(localName = "StorageClass")
-			public String StorageClass;
+			public String storageClass;
 		}
 
 		@JacksonXmlProperty(localName = "Prefix")
@@ -141,7 +141,7 @@ public final class LifecycleConfiguration {
 			public String date;
 
 			@JacksonXmlProperty(localName = "StorageClass")
-			public String StorageClass;
+			public String storageClass;
 		}
 
 	}

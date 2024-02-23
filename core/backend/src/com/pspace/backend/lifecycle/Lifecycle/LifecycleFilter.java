@@ -25,13 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.libs.S3.LifecycleConfiguration;
-import com.pspace.backend.libs.S3.Tagging;
-import com.pspace.backend.libs.S3.LifecycleConfiguration.Rule;
 import com.pspace.backend.libs.data.Constants;
 import com.pspace.backend.libs.data.lifecycle.LifecycleEventData;
+import com.pspace.backend.libs.ksan.AgentConfig;
+import com.pspace.backend.libs.ksan.ObjManagerHelper;
+import com.pspace.backend.libs.s3.LifecycleConfiguration;
+import com.pspace.backend.libs.s3.Tagging;
+import com.pspace.backend.libs.s3.LifecycleConfiguration.Rule;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
@@ -108,7 +108,7 @@ public class LifecycleFilter {
 					// 수명주기 설정이 정상적일 경우
 					if (expired > 0) {
 
-						if (StringUtils.isBlank(rule.transition.StorageClass)) {
+						if (StringUtils.isBlank(rule.transition.storageClass)) {
 							logger.error("[{}] invalid transition storage class", bucketName);
 							continue;
 						}
@@ -140,16 +140,16 @@ public class LifecycleFilter {
 								if (skipCheck(rule, object))
 									continue;
 								// 수명주기가 만료된 오브젝트를 DB에 저장
-								sendEvent(new LifecycleEventData.Builder(bucketName, object.getPath()).setStorageClass(rule.transition.StorageClass).build());
+								sendEvent(new LifecycleEventData.Builder(bucketName, object.getPath()).setStorageClass(rule.transition.storageClass).build());
 							}
 						}
 					}
 				}
 
 				// Noncurrent 버전의 Transition 수명주기 설정이 되어있을 경우
-				if (rule.versionTransition != null && !StringUtils.isBlank(rule.versionTransition.NoncurrentDays)) {
+				if (rule.versionTransition != null && !StringUtils.isBlank(rule.versionTransition.noncurrentDays)) {
 					// 기간을 숫자로 변환
-					var expired = getExpiredTimeNoncurrentDays(rule.versionTransition.NoncurrentDays);
+					var expired = getExpiredTimeNoncurrentDays(rule.versionTransition.noncurrentDays);
 					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, long2Date(expired));
 
 					// 수명주기 설정이 정상적일 경우
@@ -179,7 +179,7 @@ public class LifecycleFilter {
 									continue;
 								// 수명주기가 만료된 오브젝트를 DB에 저장
 								sendEvent(
-										new LifecycleEventData.Builder(bucketName, object.getPath()).setVersionId(object.getVersionId()).setStorageClass(rule.versionTransition.StorageClass).build());
+										new LifecycleEventData.Builder(bucketName, object.getPath()).setVersionId(object.getVersionId()).setStorageClass(rule.versionTransition.storageClass).build());
 							}
 						}
 					}
@@ -232,7 +232,7 @@ public class LifecycleFilter {
 					}
 
 					// DeleteMarker 수명주기 설정이 되어있을 경우
-					if (Boolean.parseBoolean(rule.expiration.ExpiredObjectDeleteMarker)) {
+					if (Boolean.parseBoolean(rule.expiration.expiredObjectDeleteMarker)) {
 						var nextMarker = "";
 						var isTruncated = true;
 						while (isTruncated) {
@@ -313,12 +313,12 @@ public class LifecycleFilter {
 				}
 
 				// Multipart 수명주기 설정이 되어있을 경우
-				if (rule.abortIncompleteMultipartUpload != null && !StringUtils.isBlank(rule.abortIncompleteMultipartUpload.DaysAfterInitiation)) {
+				if (rule.abortIncompleteMultipartUpload != null && !StringUtils.isBlank(rule.abortIncompleteMultipartUpload.daysAfterInitiation)) {
 					// 멀티파트 인스턴스를 가져온다.
 					var multiManager = objManager.getMultipartInstance(bucketName);
 					// 기간을 숫자로 변환
 					var expiredNoncurrentDays = NumberUtils
-							.toInt(rule.abortIncompleteMultipartUpload.DaysAfterInitiation);
+							.toInt(rule.abortIncompleteMultipartUpload.daysAfterInitiation);
 
 					// 해당 버킷의 모든 오브젝트에 대해 필터링
 					var nextMarker = "";
@@ -492,7 +492,7 @@ public class LifecycleFilter {
 		return Instant.ofEpochSecond(timestamp / 1000000000L, timestamp % 1000000000L).toString();
 	}
 
-	private Collection<com.pspace.backend.libs.S3.Tagging.TagSet.Tag> string2Tag(String strTags) {
+	private Collection<com.pspace.backend.libs.s3.Tagging.TagSet.Tag> string2Tag(String strTags) {
 		try {
 			var tagging = new XmlMapper().readValue(strTags, Tagging.class);
 			return tagging.tags.tags;

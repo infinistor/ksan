@@ -18,9 +18,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.backend.libs.S3.LoggingConfiguration;
-import com.pspace.backend.libs.S3.NotificationConfiguration;
-import com.pspace.backend.libs.S3.ReplicationConfiguration;
+import com.pspace.backend.libs.s3.LoggingConfiguration;
+import com.pspace.backend.libs.s3.NotificationConfiguration;
+import com.pspace.backend.libs.s3.ReplicationConfiguration;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 
 import org.slf4j.Logger;

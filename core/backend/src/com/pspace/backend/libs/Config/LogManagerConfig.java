@@ -15,31 +15,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LogManagerConfig {
-
-	@JsonProperty("db_repository")
-	public String dbType;
-
-	@JsonProperty("db_host")
-	public String dbHost;
-
-	@JsonProperty("db_port")
-	public int dbPort;
-
-	@JsonProperty("db_name")
-	public String dbName;
-
-	@JsonProperty("db_user")
-	public String dbUser;
-
-	@JsonProperty("db_password")
-	public String dbPassword;
-
-	@JsonProperty("db_pool_size")
-	public int dbPoolSize;
-
-	@JsonProperty("check_interval")
-	public int checkInterval;
-
 	@JsonProperty("meter_minute")
 	public int meterMinute;
 
@@ -59,17 +34,6 @@ public class LogManagerConfig {
 		}
 	}
 
-	public DBConfig getDBConfig() {
-		var config = new DBConfig();
-		config.host = dbHost;
-		config.port = dbPort;
-		config.databaseName = dbName;
-		config.user = dbUser;
-		config.password = dbPassword;
-		config.poolSize = dbPoolSize;
-
-		return config;
-	}
 
 	public MeteringConfig getMeterConfig() {
 		return new MeteringConfig(assertHour, meterMinute);

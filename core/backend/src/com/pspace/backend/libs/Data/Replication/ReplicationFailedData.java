@@ -1,4 +1,4 @@
-package com.pspace.backend.libs.data.Replication;
+package com.pspace.backend.libs.data.replication;
 
 import java.util.List;
 import java.util.ArrayList;

@@ -31,8 +31,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 import com.pspace.backend.libs.data.Metering.DateRange;
+import com.pspace.backend.libs.ksan.data.S3RegionData;
 
 public class Utility {
 	static final Logger logger = LoggerFactory.getLogger(Utility.class);

@@ -10,14 +10,14 @@
 */
 package com.pspace.backend.libs.config;
 
-import com.pspace.backend.libs.Ksan.PortalManager;
+import com.pspace.backend.libs.ksan.PortalManager;
 
 public class ConfigManager {
 
-	private static LifecycleManagerConfig lifecycleConfig = null;
-	private static LogManagerConfig logConfig = null;
-	private static ReplicationManagerConfig replicationConfig = null;
-	private static PortalManager portal = null;
+	LifecycleManagerConfig lifecycleConfig;
+	LogManagerConfig logConfig;
+	ReplicationManagerConfig replicationConfig;
+	PortalManager portal;
 
 	public static ConfigManager getInstance() {
 		return LazyHolder.INSTANCE;

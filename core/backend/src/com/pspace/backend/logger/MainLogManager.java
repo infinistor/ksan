@@ -16,12 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.backend.libs.data.Constants;
 import com.pspace.backend.libs.db.DBManager;
 import com.pspace.backend.libs.heartbeat.Heartbeat;
+import com.pspace.backend.libs.ksan.AgentConfig;
+import com.pspace.backend.libs.ksan.ObjManagerHelper;
+import com.pspace.backend.libs.ksan.PortalManager;
 import com.pspace.backend.logger.logging.MainLogger;
 import com.pspace.backend.logger.metering.MainMetering;
 
@@ -70,7 +70,7 @@ public class MainLogManager {
 		// DB 초기화
 		var db = DBManager.getInstance();
 		try {
-			db.init(config.getDBConfig());
+			db.init(portal.getDBConfig());
 			db.connect();
 		} catch (Exception e) {
 			logger.error("db connect error : ", e);
@@ -80,9 +80,8 @@ public class MainLogManager {
 
 		// ObjManager 초기화
 		var objManager = ObjManagerHelper.getInstance();
-		var objManagerConfig = portal.getObjManagerConfig();
 		try {
-			objManager.init(objManagerConfig);
+			objManager.init(portal.getObjManagerConfig());
 		} catch (Exception e) {
 			logger.error("objManager init error : ", e);
 			return;

@@ -16,9 +16,9 @@ import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.S3.ReplicationConfiguration;
-import com.pspace.backend.libs.S3.S3Parameters;
-import com.pspace.backend.libs.S3.ReplicationConfiguration.Rule.Filter.Tag;
+import com.pspace.backend.libs.s3.ReplicationConfiguration;
+import com.pspace.backend.libs.s3.S3Parameters;
+import com.pspace.backend.libs.s3.ReplicationConfiguration.Rule.Filter.Tag;
 
 public class ReplicationData {
 
@@ -102,7 +102,7 @@ public class ReplicationData {
 			}
 		}
 
-		if (Conf.deleteMarkerReplication != null && S3Parameters.isEnabled(Conf.deleteMarkerReplication.Status)) deleteMarker = true;
+		if (Conf.deleteMarkerReplication != null && S3Parameters.isEnabled(Conf.deleteMarkerReplication.status)) deleteMarker = true;
 		if (Conf.existingObjectReplication != null && S3Parameters.isEnabled(Conf.existingObjectReplication.status)) existingObjectReplicationStatus = true;
 
 		/// Filter Priority

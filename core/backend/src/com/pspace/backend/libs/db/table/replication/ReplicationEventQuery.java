@@ -8,7 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.libs.data.Replication.ReplicationEventData;
+import com.pspace.backend.libs.data.replication.ReplicationEventData;
 
 public class ReplicationEventQuery extends BaseReplicationQuery {
 	static final Logger log = LoggerFactory.getLogger(ReplicationEventQuery.class);

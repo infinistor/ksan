@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Replication.Replicator;
+package com.pspace.backend.replication.replicator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,12 +43,12 @@ import com.amazonaws.services.s3.model.SetObjectRetentionRequest;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.S3.S3Parameters;
 import com.pspace.backend.libs.data.BackendHeaders;
 import com.pspace.backend.libs.data.Constants;
-import com.pspace.backend.libs.data.Replication.ReplicationEventData;
-import com.pspace.backend.libs.data.Replication.ReplicationFailedData;
-import com.pspace.backend.libs.data.Replication.ReplicationSuccessData;
+import com.pspace.backend.libs.data.replication.ReplicationEventData;
+import com.pspace.backend.libs.data.replication.ReplicationFailedData;
+import com.pspace.backend.libs.data.replication.ReplicationSuccessData;
+import com.pspace.backend.libs.s3.S3Parameters;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 public class SendReplicator {

@@ -15,8 +15,8 @@ import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.backend.libs.S3.Tagging;
-import com.pspace.backend.libs.S3.Tagging.TagSet.Tag;
+import com.pspace.backend.libs.s3.Tagging;
+import com.pspace.backend.libs.s3.Tagging.TagSet.Tag;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
 import org.slf4j.Logger;

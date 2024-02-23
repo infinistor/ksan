@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.S3.S3Parameters;
+import com.pspace.backend.libs.s3.S3Parameters;
 
 public class ApiLogData extends BaseLogData {
 	static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ApiLogData.class);
