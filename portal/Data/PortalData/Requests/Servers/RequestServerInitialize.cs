@@ -11,15 +11,23 @@
 using PortalData.ValidationAttributes;
 using PortalResources;
 using MTLib.CommonData;
-using System.ComponentModel.DataAnnotations;
 
 namespace PortalData.Requests.Servers
 {
 	/// <summary>서버 등록/수정 요청 클래스</summary>
 	public class RequestServerInitialize : CommonRequestData
 	{
+		/// <summary>서버 아이디</summary>
+		public string Id { get; set; } = "";
+
+		/// <summary>서버 이름</summary>
+		public string Name { get; set; } = "";
+
 		/// <summary>서버 아이피</summary>
 		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
-		public string ServerIp { get; set; }
+		public string Ip { get; set; }
+
+		/// <summary>ksan Agent Id</summary>
+		public string AgentServiceId { get; set; } = "";
 	}
 }
