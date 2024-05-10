@@ -1384,6 +1384,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Invalid Disk State.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISKS_INVALID_DISK_STATE {
+            get {
+                return ResourceManager.GetString("EM_DISKS_INVALID_DISK_STATE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Invalid server id.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_DISKS_INVALID_SERVER_ID {
@@ -1461,6 +1470,15 @@ namespace PortalResources {
         public static string EM_DISKS_REQUIRE_SERVER_ID {
             get {
                 return ResourceManager.GetString("EM_DISKS_REQUIRE_SERVER_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Duplicated Id.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DUPLICATED_ID {
+            get {
+                return ResourceManager.GetString("EM_DUPLICATED_ID", resourceCulture);
             }
         }
         
@@ -1668,6 +1686,15 @@ namespace PortalResources {
         public static string EM_SERVERS_CPU_USAGE_SHOULD_BE_BETWEEN_0_TO_100 {
             get {
                 return ResourceManager.GetString("EM_SERVERS_CPU_USAGE_SHOULD_BE_BETWEEN_0_TO_100", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   A server with the same id exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_SERVERS_DUPLICATED_ID {
+            get {
+                return ResourceManager.GetString("EM_SERVERS_DUPLICATED_ID", resourceCulture);
             }
         }
         
@@ -1987,11 +2014,101 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   DEFAULT_DISK_POOL_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_DISK_POOL_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_DISK_POOL_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVER_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVER_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVER_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVER_NAME과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVER_NAME {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVER_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVICE_AGENT_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVICE_AGENT_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVICE_AGENT_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVICE_GW_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVICE_GW_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVICE_GW_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVICE_LIFECYCLE_MANAGER_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVICE_LIFECYCLE_MANAGER_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVICE_LIFECYCLE_MANAGER_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVICE_LOG_MANAGER_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVICE_LOG_MANAGER_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVICE_LOG_MANAGER_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVICE_OSD_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVICE_OSD_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVICE_OSD_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_SERVICE_REPLICATION_MANAGER_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_SERVICE_REPLICATION_MANAGER_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_SERVICE_REPLICATION_MANAGER_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   DEFAULT_USER_ACCESSKEY과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string ENV_DEFAULT_USER_ACCESS_KEY {
             get {
                 return ResourceManager.GetString("ENV_DEFAULT_USER_ACCESS_KEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_USER_ID과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_USER_ID {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_USER_ID", resourceCulture);
             }
         }
         
@@ -2266,15 +2383,6 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   SERVER_NAME과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        public static string ENV_SERVER_NAME {
-            get {
-                return ResourceManager.GetString("ENV_SERVER_NAME", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   SERVICE_API_KEY과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string ENV_SERVICE_API_KEY {
@@ -2289,6 +2397,42 @@ namespace PortalResources {
         public static string INTERNAL_SERVICE_API_KEY {
             get {
                 return ResourceManager.GetString("INTERNAL_SERVICE_API_KEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   *.servers.diskpools.added과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string MQ_DISK_ADD {
+            get {
+                return ResourceManager.GetString("MQ_DISK_ADD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   *.servers.diskpools.removed과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string MQ_DISK_REMOVE {
+            get {
+                return ResourceManager.GetString("MQ_DISK_REMOVE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   *.servers.disks.state과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string MQ_DISK_STATUS {
+            get {
+                return ResourceManager.GetString("MQ_DISK_STATUS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   *.servers.diskpools.updated과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string MQ_DISK_UPDATE {
+            get {
+                return ResourceManager.GetString("MQ_DISK_UPDATE", resourceCulture);
             }
         }
         
@@ -4170,6 +4314,15 @@ namespace PortalResources {
         public static string UL_DISKS_READ_WRITE_MODE {
             get {
                 return ResourceManager.GetString("UL_DISKS_READ_WRITE_MODE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Deleting과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string UL_DISKS_READ_WRITE_MODE_DELETE {
+            get {
+                return ResourceManager.GetString("UL_DISKS_READ_WRITE_MODE_DELETE", resourceCulture);
             }
         }
         

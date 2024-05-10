@@ -1810,66 +1810,87 @@
   </data>
   <data name="ENV_ALLOWED_HOSTS" xml:space="preserve">
     <value>ALLOWED_HOSTS</value>
+    <comment>허용된 호스트</comment>
   </data>
   <data name="ENV_CERTIFICATE_FILE_PATH" xml:space="preserve">
     <value>CERTIFICATE_FILE_PATH</value>
+    <comment>인증서 파일 경로</comment>
   </data>
   <data name="ENV_CERTIFICATE_PASSWORD" xml:space="preserve">
     <value>CERTIFICATE_PASSWORD</value>
+    <comment>인증서 비밀번호</comment>
   </data>
   <data name="ENV_DATABASE" xml:space="preserve">
     <value>DATABASE</value>
+    <comment>데이터베이스</comment>
   </data>
   <data name="ENV_DATABASE_TYPE" xml:space="preserve">
     <value>DATABASE_TYPE</value>
+    <comment>데이터베이스 타입</comment>
   </data>
   <data name="ENV_LOG_LEVEL" xml:space="preserve">
     <value>LOG_LEVEL</value>
+    <comment>로그 레벨</comment>
   </data>
   <data name="ENV_MARIADB_HOST" xml:space="preserve">
     <value>MARIADB_HOST</value>
+    <comment>MariaDB 호스트</comment>
   </data>
   <data name="ENV_MARIADB_LICENSEKEY" xml:space="preserve">
     <value>MARIADB_LICENSEKEY</value>
+    <comment>MariaDB 라이센스키</comment>
   </data>
   <data name="ENV_MARIADB_PORT" xml:space="preserve">
     <value>MARIADB_PORT</value>
+    <comment>MariaDB 포트</comment>
   </data>
   <data name="ENV_MARIADB_ROOT_PASSWORD" xml:space="preserve">
     <value>MARIADB_ROOT_PASSWORD</value>
+    <comment>MariaDB 루트 비밀번호</comment>
   </data>
   <data name="ENV_MARIADB_ROOT_USER" xml:space="preserve">
     <value>MARIADB_ROOT_USER</value>
+    <comment>MariaDB 루트 사용자</comment>
   </data>
   <data name="ENV_MONGODB_HOST" xml:space="preserve">
     <value>MONGODB_HOST</value>
+    <comment>MongoDB 호스트</comment>
   </data>
   <data name="ENV_MONGODB_PORT" xml:space="preserve">
     <value>MONGODB_PORT</value>
+    <comment>MongoDB 포트</comment>
   </data>
   <data name="ENV_MONGODB_ROOT_PASSWORD" xml:space="preserve">
     <value>MONGODB_ROOT_PASSWORD</value>
+    <comment>MongoDB 루트 비밀번호</comment>
   </data>
   <data name="ENV_MONGODB_ROOT_USER" xml:space="preserve">
     <value>MONGODB_ROOT_USER</value>
+    <comment>MongoDB 루트 사용자</comment>
   </data>
   <data name="ENV_PORTAL_HOST" xml:space="preserve">
     <value>PORTAL_HOST</value>
+    <comment>포털 호스트</comment>
   </data>
   <data name="ENV_RABBITMQ_HOST" xml:space="preserve">
     <value>RABBITMQ_HOST</value>
+    <comment>RabbitMQ 호스트</comment>
   </data>
   <data name="ENV_RABBITMQ_PASSWORD" xml:space="preserve">
     <value>RABBITMQ_PASSWORD</value>
+    <comment>RabbitMQ 비밀번호</comment>
   </data>
   <data name="ENV_RABBITMQ_PORT" xml:space="preserve">
     <value>RABBITMQ_PORT</value>
+    <comment>RabbitMQ 포트</comment>
   </data>
   <data name="ENV_RABBITMQ_USER" xml:space="preserve">
     <value>RABBITMQ_USER</value>
+    <comment>RabbitMQ 사용자</comment>
   </data>
   <data name="ENV_SERVICE_API_KEY" xml:space="preserve">
     <value>SERVICE_API_KEY</value>
+    <comment>서비스 API 키</comment>
   </data>
   <data name="EM_DISK_DOES_NOT_EXIST" xml:space="preserve">
     <value>The disk does not exist.</value>
@@ -1889,9 +1910,11 @@
   </data>
   <data name="ENV_INIT_TYPE_ALL_IN_ONE" xml:space="preserve">
     <value>ALL_IN_ONE</value>
+    <comment>통합 설치</comment>
   </data>
   <data name="ENV_INIT_TYPE_NORMAL" xml:space="preserve">
     <value>NORMAL</value>
+    <comment>일반 설치</comment>
   </data>
   <data name="ENV_DATABASE_TYPE_MARIA_DB" xml:space="preserve">
     <value>MariaDB</value>
@@ -1901,21 +1924,27 @@
   </data>
   <data name="ENV_DISK_PATHS" xml:space="preserve">
     <value>OSDDISK_PATHS</value>
+    <comment>OSD 디스크 경로 목록</comment>
   </data>
   <data name="ENV_GW_KEYSTORE_FILE_PATH" xml:space="preserve">
     <value>GW_KEYSTORE_FILE_PATH</value>
+    <comment>GW 키스토어 파일 경로</comment>
   </data>
   <data name="ENV_GW_KEYSTORE_PASSWORD" xml:space="preserve">
     <value>GW_KEYSTORE_PASSWORD</value>
+    <comment>GW 키스토어 비밀번호</comment>
   </data>
-  <data name="ENV_SERVER_NAME" xml:space="preserve">
-    <value>SERVER_NAME</value>
+  <data name="ENV_DEFAULT_SERVER_NAME" xml:space="preserve">
+    <value>DEFAULT_SERVER_NAME</value>
+    <comment>서버명</comment>
   </data>
   <data name="ENV_DEFAULT_USER_ACCESS_KEY" xml:space="preserve">
     <value>DEFAULT_USER_ACCESSKEY</value>
+    <comment>기본 사용자 액세스키</comment>
   </data>
   <data name="ENV_DEFAULT_USER_SECRET_KEY" xml:space="preserve">
     <value>DEFAULT_USER_SECRETKEY</value>
+    <comment>기본 사용자 시크릿키</comment>
   </data>
   <data name="UL_DISKPOOL_REPLICA_TYPE_EC" xml:space="preserve">
     <value>EC</value>
@@ -1935,6 +1964,7 @@
   </data>
   <data name="ENV_REGION_NAME" xml:space="preserve">
     <value>REGION_NAME</value>
+    <comment>S3 리전명</comment>
   </data>
   <data name="EC_S3_SUCH_BUCKET_NOT_FOUND" xml:space="preserve">
     <value>ECS3005</value>
@@ -1959,9 +1989,11 @@
   </data>
   <data name="ENV_EXCLUDE_SERVICES" xml:space="preserve">
     <value>EXCLUDE_SERVICE</value>
+    <comment>설치 제외 서비스</comment>
   </data>
   <data name="ENV_EXCLUDE_SERVICES_ALL" xml:space="preserve">
     <value>ksanServiceAll</value>
+    <comment>모든 서비스</comment>
   </data>
   <data name="ENV_EXCLUDE_SERVICES_KSAN_GW" xml:space="preserve">
     <value>KsanGW</value>
@@ -1977,5 +2009,69 @@
   </data>
   <data name="ENV_EXCLUDE_SERVICES_KSAN_REPLICATION_MANAGER" xml:space="preserve">
     <value>KsanReplicationManager</value>
+  </data>
+  <data name="UL_DISKS_READ_WRITE_MODE_DELETE" xml:space="preserve">
+    <value>Deleting</value>
+    <comment>삭제중</comment>
+  </data>
+  <data name="MQ_DISK_ADD" xml:space="preserve">
+    <value>*.servers.diskpools.added</value>
+  </data>
+  <data name="MQ_DISK_REMOVE" xml:space="preserve">
+    <value>*.servers.diskpools.removed</value>
+  </data>
+  <data name="MQ_DISK_STATUS" xml:space="preserve">
+    <value>*.servers.disks.state</value>
+  </data>
+  <data name="MQ_DISK_UPDATE" xml:space="preserve">
+    <value>*.servers.diskpools.updated</value>
+  </data>
+  <data name="EM_DISKS_INVALID_DISK_STATE" xml:space="preserve">
+    <value>Invalid Disk State.</value>
+    <comment>디스크 상태가 올바르지 않습니다.</comment>
+  </data>
+  <data name="ENV_DEFAULT_SERVER_ID" xml:space="preserve">
+    <value>DEFAULT_SERVER_ID</value>
+    <comment>서버 Id</comment>
+  </data>
+  <data name="ENV_DEFAULT_SERVICE_GW_ID" xml:space="preserve">
+    <value>DEFAULT_SERVICE_GW_ID</value>
+    <comment>GW Id</comment>
+  </data>
+  <data name="ENV_DEFAULT_SERVICE_LIFECYCLE_MANAGER_ID" xml:space="preserve">
+    <value>DEFAULT_SERVICE_LIFECYCLE_MANAGER_ID</value>
+    <comment>Lifecycle Manager Id</comment>
+  </data>
+  <data name="ENV_DEFAULT_SERVICE_LOG_MANAGER_ID" xml:space="preserve">
+    <value>DEFAULT_SERVICE_LOG_MANAGER_ID</value>
+    <comment>Lifecycle Log Id</comment>
+  </data>
+  <data name="ENV_DEFAULT_SERVICE_OSD_ID" xml:space="preserve">
+    <value>DEFAULT_SERVICE_OSD_ID</value>
+    <comment>OSD Id</comment>
+  </data>
+  <data name="ENV_DEFAULT_SERVICE_REPLICATION_MANAGER_ID" xml:space="preserve">
+    <value>DEFAULT_SERVICE_REPLICATION_MANAGER_ID</value>
+    <comment>Replication Manager Id</comment>
+  </data>
+  <data name="EM_DUPLICATED_ID" xml:space="preserve">
+    <value>Duplicated Id.</value>
+    <comment>중복된 ID입니다.</comment>
+  </data>
+  <data name="EM_SERVERS_DUPLICATED_ID" xml:space="preserve">
+    <value>A server with the same id exist.</value>
+    <comment>동일한 Id의 서버가 존재합니다.</comment>
+  </data>
+  <data name="ENV_DEFAULT_DISK_POOL_ID" xml:space="preserve">
+    <value>DEFAULT_DISK_POOL_ID</value>
+    <comment>Disk Pool Id</comment>
+  </data>
+  <data name="ENV_DEFAULT_SERVICE_AGENT_ID" xml:space="preserve">
+    <value>DEFAULT_SERVICE_AGENT_ID</value>
+    <comment>Agent Id</comment>
+  </data>
+  <data name="ENV_DEFAULT_USER_ID" xml:space="preserve">
+    <value>DEFAULT_USER_ID</value>
+    <comment>User Id</comment>
   </data>
 </root>

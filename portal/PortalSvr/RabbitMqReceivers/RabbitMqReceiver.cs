@@ -148,13 +148,13 @@ namespace PortalSvr.RabbitMQReceivers
 		}
 
 		/// <summary>서비스 실행</summary>
-		/// <param name="StoppingToken">실행 취소 토큰 객체</param>
+		/// <param name="stoppingToken">실행 취소 토큰 객체</param>
 		/// <returns></returns>
-		protected override Task ExecuteAsync(CancellationToken StoppingToken)
+		protected override Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			try
 			{
-				StoppingToken.ThrowIfCancellationRequested();
+				stoppingToken.ThrowIfCancellationRequested();
 
 				// Consumer 생성
 				var Consumer = new EventingBasicConsumer(m_channel);

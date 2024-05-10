@@ -96,7 +96,7 @@ namespace PortalProvider.Providers.Networks
 				var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.check", new
 				{
 					Id = NewId.ToString(),
-					ServerId = ServerId,
+					ServerId,
 					Request.Name,
 					Request.Description,
 					Request.Dhcp,
@@ -115,74 +115,64 @@ namespace PortalProvider.Providers.Networks
 				if (Response.Result != EnumResponseResult.Success)
 					return new ResponseData<ResponseNetworkInterface>(EnumResponseResult.Error, Response.Code, Response.Message);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 생성한다.
+					var NewData = new NetworkInterface
 					{
-						// 정보를 생성한다.
-						var NewData = new NetworkInterface
-						{
-							Id = NewId,
-							ServerId = ServerGuid,
-							Name = Request.Name,
-							Description = Request.Description,
-							Dhcp = (EnumDbYesNo?)Request.Dhcp,
-							MacAddress = Request.MacAddress,
-							LinkState = (EnumDbNetworkLinkState?)Request.LinkState,
-							IpAddress = Request.IpAddress,
-							SubnetMask = Request.SubnetMask,
-							Gateway = Request.Gateway,
-							Dns1 = Request.Dns1,
-							Dns2 = Request.Dns2,
-							BandWidth = Request.BandWidth,
-							IsManagement = Request.IsManagement,
-							RegId = LoginUserId,
-							RegName = LoginUserName,
-							RegDate = DateTime.Now,
-							ModId = LoginUserId,
-							ModName = LoginUserName,
-							ModDate = DateTime.Now
-						};
-						await m_dbContext.NetworkInterfaces.AddAsync(NewData);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						Id = NewId,
+						ServerId = ServerGuid,
+						Name = Request.Name,
+						Description = Request.Description,
+						Dhcp = (EnumDbYesNo?)Request.Dhcp,
+						MacAddress = Request.MacAddress,
+						LinkState = (EnumDbNetworkLinkState?)Request.LinkState,
+						IpAddress = Request.IpAddress,
+						SubnetMask = Request.SubnetMask,
+						Gateway = Request.Gateway,
+						Dns1 = Request.Dns1,
+						Dns2 = Request.Dns2,
+						BandWidth = Request.BandWidth,
+						IsManagement = Request.IsManagement,
+						ModId = LoginUserId,
+						ModName = LoginUserName,
+					};
+					await m_dbContext.NetworkInterfaces.AddAsync(NewData);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						var NewVlan = new NetworkInterfaceVlan
-						{
-							Id = Guid.NewGuid(),
-							InterfaceId = NewData.Id,
-							Tag = 1,
-							IpAddress = Request.IpAddress,
-							SubnetMask = Request.SubnetMask,
-							Gateway = Request.Gateway,
-							RegId = LoginUserId,
-							RegName = LoginUserName,
-							RegDate = DateTime.Now,
-							ModId = LoginUserId,
-							ModName = LoginUserName,
-							ModDate = DateTime.Now
-						};
-						await m_dbContext.NetworkInterfaceVlans.AddAsync(NewVlan);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-						Result.Data = (await Get(ServerId, NewData.Id.ToString())).Data;
-
-						// 추가된 네트워크 인터페이스 정보 전송
-						SendMq("*.servers.interfaces.added", new ResponseNetworkInterface().CopyValueFrom(NewData));
-						// 추가된 네트워크 인터페이스 VLAN 정보 전송
-						SendMq("*.servers.interfaces.vlans.added", new ResponseNetworkInterfaceVlan().CopyValueFrom(NewVlan));
-					}
-					catch (Exception ex)
+					var NewVlan = new NetworkInterfaceVlan
 					{
-						await Transaction.RollbackAsync();
+						Id = Guid.NewGuid(),
+						InterfaceId = NewData.Id,
+						Tag = 1,
+						IpAddress = Request.IpAddress,
+						SubnetMask = Request.SubnetMask,
+						Gateway = Request.Gateway,
+						ModId = LoginUserId,
+						ModName = LoginUserName,
+					};
+					await m_dbContext.NetworkInterfaceVlans.AddAsync(NewVlan);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						NNException.Log(ex);
+					await Transaction.CommitAsync();
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Result = EnumResponseResult.Success;
+					Result.Data = (await Get(ServerId, NewData.Id.ToString())).Data;
+
+					// 추가된 네트워크 인터페이스 정보 전송
+					SendMq("*.servers.interfaces.added", new ResponseNetworkInterface().CopyValueFrom(NewData));
+					// 추가된 네트워크 인터페이스 VLAN 정보 전송
+					SendMq("*.servers.interfaces.vlans.added", new ResponseNetworkInterfaceVlan().CopyValueFrom(NewVlan));
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -244,120 +234,112 @@ namespace PortalProvider.Providers.Networks
 				var ExistVlan = await m_dbContext.NetworkInterfaceVlans
 					.FirstOrDefaultAsync(i => i.InterfaceId == InterfaceGuid && i.Tag == 1);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 수정한다.
+					Exist.Name = Request.Name;
+					Exist.Description = Request.Description;
+					Exist.Dhcp = (EnumDbYesNo?)Request.Dhcp;
+					Exist.MacAddress = Request.MacAddress;
+					Exist.LinkState = (EnumDbNetworkLinkState?)Request.LinkState;
+					Exist.IpAddress = Request.IpAddress;
+					Exist.SubnetMask = Request.SubnetMask;
+					Exist.Gateway = Request.Gateway;
+					Exist.Dns1 = Request.Dns1;
+					Exist.Dns2 = Request.Dns2;
+					Exist.BandWidth = Request.BandWidth;
+					Exist.IsManagement = Request.IsManagement;
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
 					{
-						// 정보를 수정한다.
-						Exist.Name = Request.Name;
-						Exist.Description = Request.Description;
-						Exist.Dhcp = (EnumDbYesNo?)Request.Dhcp;
-						Exist.MacAddress = Request.MacAddress;
-						Exist.LinkState = (EnumDbNetworkLinkState?)Request.LinkState;
-						Exist.IpAddress = Request.IpAddress;
-						Exist.SubnetMask = Request.SubnetMask;
-						Exist.Gateway = Request.Gateway;
-						Exist.Dns1 = Request.Dns1;
-						Exist.Dns2 = Request.Dns2;
-						Exist.BandWidth = Request.BandWidth;
-						Exist.IsManagement = Request.IsManagement;
+						// 네트워크 인터페이스 수정을 요청한다.
+						var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.check", new
+						{
+							Id,
+							ServerId,
+							Request.Name,
+							Request.Description,
+							Request.Dhcp,
+							Request.MacAddress,
+							Request.LinkState,
+							Request.IpAddress,
+							Request.SubnetMask,
+							Request.Gateway,
+							Request.Dns1,
+							Request.Dns2,
+							Request.BandWidth,
+							Request.IsManagement,
+						}, 10);
+
+						// 실패인 경우
+						if (Response.Result != EnumResponseResult.Success)
+						{
+							await Transaction.RollbackAsync();
+							return new ResponseData(EnumResponseResult.Error, Response.Code, Response.Message);
+						}
+
+						Exist.ModId = LoginUserId;
+						Exist.ModName = LoginUserName;
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					}
+
+					bool ChangedVlan = false;
+
+					// 해당 인터페이스와 연결된 Tag가 1인 VLAN 정보가 존재하지 않는 경우
+					if (ExistVlan == null)
+					{
+						var NewVlan = new NetworkInterfaceVlan
+						{
+							Id = Guid.NewGuid(),
+							InterfaceId = InterfaceGuid,
+							Tag = 1,
+							IpAddress = Request.IpAddress,
+							SubnetMask = Request.SubnetMask,
+							Gateway = Request.Gateway,
+							ModId = LoginUserId,
+							ModName = LoginUserName,
+						};
+						await m_dbContext.NetworkInterfaceVlans.AddAsync(NewVlan);
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+						ExistVlan = NewVlan;
+						ChangedVlan = true;
+					}
+					// 해당 인터페이스와 연결된 Tag가 1인 VLAN 정보가 존재하는 경우
+					else
+					{
+						ExistVlan.IpAddress = Request.IpAddress;
+						ExistVlan.SubnetMask = Request.SubnetMask;
+						ExistVlan.Gateway = Request.Gateway;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
-							// 네트워크 인터페이스 수정을 요청한다.
-							var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.check", new
-							{
-								Id = Id,
-								ServerId = ServerId,
-								Request.Name,
-								Request.Description,
-								Request.Dhcp,
-								Request.MacAddress,
-								Request.LinkState,
-								Request.IpAddress,
-								Request.SubnetMask,
-								Request.Gateway,
-								Request.Dns1,
-								Request.Dns2,
-								Request.BandWidth,
-								Request.IsManagement,
-							}, 10);
-
-							// 실패인 경우
-							if (Response.Result != EnumResponseResult.Success)
-							{
-								await Transaction.RollbackAsync();
-								return new ResponseData(EnumResponseResult.Error, Response.Code, Response.Message);
-							}
-
-							Exist.ModId = LoginUserId;
-							Exist.ModName = LoginUserName;
-							Exist.ModDate = DateTime.Now;
+							ExistVlan.ModId = LoginUserId;
+							ExistVlan.ModName = LoginUserName;
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						}
-
-						bool ChangedVlan = false;
-
-						// 해당 인터페이스와 연결된 Tag가 1인 VLAN 정보가 존재하지 않는 경우
-						if (ExistVlan == null)
-						{
-							var NewVlan = new NetworkInterfaceVlan
-							{
-								Id = Guid.NewGuid(),
-								InterfaceId = InterfaceGuid,
-								Tag = 1,
-								IpAddress = Request.IpAddress,
-								SubnetMask = Request.SubnetMask,
-								Gateway = Request.Gateway,
-								RegId = LoginUserId,
-								RegName = LoginUserName,
-								RegDate = DateTime.Now,
-								ModId = LoginUserId,
-								ModName = LoginUserName,
-								ModDate = DateTime.Now
-							};
-							await m_dbContext.NetworkInterfaceVlans.AddAsync(NewVlan);
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-							ExistVlan = NewVlan;
 							ChangedVlan = true;
 						}
-						// 해당 인터페이스와 연결된 Tag가 1인 VLAN 정보가 존재하는 경우
-						else
-						{
-							ExistVlan.IpAddress = Request.IpAddress;
-							ExistVlan.SubnetMask = Request.SubnetMask;
-							ExistVlan.Gateway = Request.Gateway;
-							// 데이터가 변경된 경우 저장
-							if (m_dbContext.HasChanges())
-							{
-								ExistVlan.ModId = LoginUserId;
-								ExistVlan.ModName = LoginUserName;
-								ExistVlan.ModDate = DateTime.Now;
-								await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-								ChangedVlan = true;
-							}
-						}
-
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-
-						// 수정된 네트워크 인터페이스 정보 전송
-						SendMq("*.servers.interfaces.updated", new ResponseNetworkInterface().CopyValueFrom(Exist));
-						// 수정된 네트워크 인터페이스 VLAN 정보 전송
-						if (ChangedVlan)
-							SendMq("*.servers.interfaces.vlans.updated", new ResponseNetworkInterfaceVlan().CopyValueFrom(ExistVlan));
 					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					await Transaction.CommitAsync();
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Result = EnumResponseResult.Success;
+
+					// 수정된 네트워크 인터페이스 정보 전송
+					SendMq("*.servers.interfaces.updated", new ResponseNetworkInterface().CopyValueFrom(Exist));
+					// 수정된 네트워크 인터페이스 VLAN 정보 전송
+					if (ChangedVlan)
+						SendMq("*.servers.interfaces.vlans.updated", new ResponseNetworkInterfaceVlan().CopyValueFrom(ExistVlan));
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -402,28 +384,26 @@ namespace PortalProvider.Providers.Networks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.LinkState = (EnumDbNetworkLinkState)State;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
+					// 정보를 수정한다.
+					Exist.LinkState = (EnumDbNetworkLinkState)State;
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -491,42 +471,42 @@ namespace PortalProvider.Providers.Networks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.Rx = Rx;
-						Exist.Tx = Tx;
-						Exist.RegDate = DateTime.Now;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 정보를 수정한다.
+					Exist.Rx = Rx;
+					Exist.Tx = Tx;
+					Exist.ModId = LoginUserId;
+					Exist.ModName = LoginUserName;
 
-						// 사용 정보 추가
-						m_dbContext.NetworkInterfaceUsages.Add(new NetworkInterfaceUsage
-						{
-							Id = Exist.Id,
-							RegDate = DateTime.Now,
-							BandWidth = Exist.BandWidth,
-							Rx = Rx,
-							Tx = Tx
-						});
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
+					// 사용 정보 추가
+					m_dbContext.NetworkInterfaceUsages.Add(new NetworkInterfaceUsage
 					{
-						await Transaction.RollbackAsync();
+						Id = Exist.Id,
+						RegDate = DateTime.Now,
+						BandWidth = Exist.BandWidth,
+						Rx = Rx,
+						Tx = Tx
+					});
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						NNException.Log(ex);
+					await Transaction.CommitAsync();
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -596,57 +576,55 @@ namespace PortalProvider.Providers.Networks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Success);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 서비스 연결 목록을 가져온다.
-						var Services = await m_dbContext.ServiceNetworkInterfaceVlans
-							.Where(i => i.NetworkInterfaceVlan.InterfaceId == InterfaceGuid)
-							.ToListAsync();
-						// 서비스 연결 목록 삭제
-						m_dbContext.ServiceNetworkInterfaceVlans.RemoveRange(Services);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 서비스 연결 목록을 가져온다.
+					var Services = await m_dbContext.ServiceNetworkInterfaceVlans
+						.Where(i => i.NetworkInterfaceVlan.InterfaceId == InterfaceGuid)
+						.ToListAsync();
+					// 서비스 연결 목록 삭제
+					m_dbContext.ServiceNetworkInterfaceVlans.RemoveRange(Services);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						// VLAN 목록을 가져온다.
-						var Vlans = await m_dbContext.NetworkInterfaceVlans
-							.Where(i => i.InterfaceId == InterfaceGuid)
-							.ToListAsync();
-						// VLAN 목록 삭제
-						m_dbContext.NetworkInterfaceVlans.RemoveRange(Vlans);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// VLAN 목록을 가져온다.
+					var Vlans = await m_dbContext.NetworkInterfaceVlans
+						.Where(i => i.InterfaceId == InterfaceGuid)
+						.ToListAsync();
+					// VLAN 목록 삭제
+					m_dbContext.NetworkInterfaceVlans.RemoveRange(Vlans);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						// 네트워크 사용 목록을 가져온다.
-						var Usages = await m_dbContext.NetworkInterfaceUsages
-							.Where(i => i.Id == InterfaceGuid)
-							.ToListAsync();
-						// 네트워크 사용 목록 삭제
-						m_dbContext.NetworkInterfaceUsages.RemoveRange(Usages);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 네트워크 사용 목록을 가져온다.
+					var Usages = await m_dbContext.NetworkInterfaceUsages
+						.Where(i => i.Id == InterfaceGuid)
+						.ToListAsync();
+					// 네트워크 사용 목록 삭제
+					m_dbContext.NetworkInterfaceUsages.RemoveRange(Usages);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						// 해당 데이터 삭제
-						m_dbContext.NetworkInterfaces.Remove(Exist);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 해당 데이터 삭제
+					m_dbContext.NetworkInterfaces.Remove(Exist);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 
-						foreach (var Vlan in Vlans)
-							// 삭제된 네트워크 인터페이스 VLAN 정보 전송
-							SendMq("*.servers.interfaces.vlans.deleted", new { Id = Vlan.Id, Vlan.InterfaceId });
-						// 삭제된 네트워크 인터페이스 정보 전송
-						SendMq("*.servers.interfaces.deleted", new { Exist.Id, Exist.ServerId, Exist.Name });
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					foreach (var Vlan in Vlans)
+						// 삭제된 네트워크 인터페이스 VLAN 정보 전송
+						SendMq("*.servers.interfaces.vlans.deleted", new { Id = Vlan.Id, Vlan.InterfaceId });
+					// 삭제된 네트워크 인터페이스 정보 전송
+					SendMq("*.servers.interfaces.deleted", new { Exist.Id, Exist.ServerId, Exist.Name });
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -673,7 +651,7 @@ namespace PortalProvider.Providers.Networks
 			string ServerId
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Result = new ResponseList<ResponseNetworkInterface>();

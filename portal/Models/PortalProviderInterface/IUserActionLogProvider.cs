@@ -43,7 +43,7 @@ namespace PortalProviderInterface
 			DateTime SearchStartDate, DateTime SearchEndDate,
 			List<EnumLogLevel> Levels,
 			int Skip = 0, int CountPerPage = 100,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		);
 	}
 }

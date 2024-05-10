@@ -69,7 +69,7 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName == null || i.BucketName == BucketName))
 					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
@@ -117,7 +117,7 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketApiAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName == null || i.BucketName == BucketName))
 					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
@@ -130,6 +130,7 @@ namespace PortalProvider.Providers.S3
 						Head = Items.Sum(j => j.Event.StartsWith("REST.HEAD") ? j.Count : 0),
 					})
 					.CreateListAsync<dynamic, ResponseS3RequestUsage>(Skip, CountPerPage);
+
 
 				// 결과가 없을 경우 빈 데이터 생성
 				Result.Data ??= new QueryResults<ResponseS3RequestUsage>();
@@ -168,7 +169,7 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketIoAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName == null || i.BucketName == BucketName))
 					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
@@ -216,7 +217,7 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketErrorAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName == null || i.BucketName == BucketName))
 					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
@@ -239,20 +240,22 @@ namespace PortalProvider.Providers.S3
 			return Result;
 		}
 
-		/// <summary>현재 버킷의 사용량을 조회한다.</summary>
-		/// <param name="UserName">유저명</param>
-		/// <param name="BucketName">버킷명</param>
-		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <returns>결과</returns>
+		// /// <summary>현재 버킷의 사용량을 조회한다.</summary>
+		// /// <param name="UserName">유저명</param>
+		// /// <param name="BucketName">버킷명</param>
+		// /// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		// /// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		// /// <returns>결과</returns>
 		public async Task<ResponseList<ResponseS3BucketUsage>> GetBucket(string UserName = null, string BucketName = null, int Skip = 0, int CountPerPage = 100)
 		{
 			var Result = new ResponseList<ResponseS3BucketUsage>();
 
 			try
 			{
-				// 결과가 없을 경우 빈 데이터 생성
-				Result.Data ??= new QueryResults<ResponseS3BucketUsage>();
+				// Result.Data = await m_dbContext.BucketLists.AsNoTracking()
+				// .Where(i => (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+				// .Select(i => new { UserName = i.UserId, i.BucketName, i.UsedSize, i.FileCount })
+				// .CreateListAsync<dynamic, ResponseS3BucketUsage>(Skip, CountPerPage);
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -265,6 +268,7 @@ namespace PortalProvider.Providers.S3
 
 			return Result;
 		}
+
 		/// <summary>특정 시간동안 발생한 버킷별 요청 횟수를 조회한다.</summary>
 		/// <param name="StartTime">시작시간(ex 2023-01-01 01:00:00)</param>
 		/// <param name="EndTime">종료시간(ex 2023-01-01 01:01:00)</param>
@@ -297,10 +301,10 @@ namespace PortalProvider.Providers.S3
 				// 요청 횟수를 조회한다.
 				Result.Data = await m_dbContext.BucketApiMeters.AsNoTracking()
 					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
-					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
+					.GroupBy(i => new { i.UserName, BucketName = i.BucketName }, (Key, Items) => new
 					{
-						Key.UserName,
-						Key.BucketName,
+						UserName = Key.UserName,
+						BucketName = Key.BucketName,
 						Get = Items.Sum(j => j.Event.StartsWith("REST.GET") ? j.Count : 0),
 						Put = Items.Sum(j => j.Event.StartsWith("REST.PUT") ? j.Count : 0),
 						Delete = Items.Sum(j => j.Event.StartsWith("REST.DELETE") ? j.Count : 0),
@@ -463,11 +467,11 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BackendApiAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName == null || i.BucketName == BucketName))
 					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
-						Key.UserName,
-						Key.BucketName,
+						UserName = Key.UserName,
+						BucketName = Key.BucketName,
 						Get = Items.Sum(j => j.Event.StartsWith("BACKEND.GET") ? j.Count : 0),
 						Put = Items.Sum(j => j.Event.StartsWith("BACKEND.PUT") ? j.Count : 0),
 						Delete = Items.Sum(j => j.Event.StartsWith("BACKEND.DELETE") ? j.Count : 0),
@@ -515,8 +519,8 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BackendIoAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
-					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, BucketName = i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -563,8 +567,8 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BackendErrorAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
-					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, BucketName = i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -618,10 +622,10 @@ namespace PortalProvider.Providers.S3
 				// 요청 횟수를 조회한다.
 				Result.Data = await m_dbContext.BackendApiMeters.AsNoTracking()
 					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
-					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
+					.GroupBy(i => new { i.UserName, BucketName = i.BucketName }, (Key, Items) => new
 					{
-						Key.UserName,
-						Key.BucketName,
+						UserName = Key.UserName,
+						BucketName = Key.BucketName,
 						Get = Items.Sum(j => j.Event.StartsWith("REST.GET") ? j.Count : 0),
 						Put = Items.Sum(j => j.Event.StartsWith("REST.PUT") ? j.Count : 0),
 						Delete = Items.Sum(j => j.Event.StartsWith("REST.DELETE") ? j.Count : 0),
@@ -734,7 +738,7 @@ namespace PortalProvider.Providers.S3
 				// 에러 횟수를 조회한다.
 				Result.Data = await m_dbContext.BackendErrorMeters.AsNoTracking()
 					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
-					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
+					.GroupBy(i => new { i.UserName, BucketName = i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -774,8 +778,7 @@ namespace PortalProvider.Providers.S3
 				var value = 0L;
 				if (long.TryParse(StrDate, out value))
 				{
-					DateTime dt = DateTime.UnixEpoch;
-					Result = dt.AddSeconds(value).ToLocalTime();
+					Result = DateTime.UnixEpoch.AddSeconds(value).ToLocalTime();
 					return true;
 				}
 			}
@@ -784,8 +787,7 @@ namespace PortalProvider.Providers.S3
 				var value = 0L;
 				if (long.TryParse(StrDate, out value))
 				{
-					DateTime dt = DateTime.UnixEpoch;
-					Result = dt.AddMilliseconds(value).ToLocalTime();
+					Result = DateTime.UnixEpoch.AddMilliseconds(value).ToLocalTime();
 					return true;
 				}
 			}

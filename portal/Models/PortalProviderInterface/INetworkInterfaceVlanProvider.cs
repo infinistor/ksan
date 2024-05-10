@@ -55,7 +55,7 @@ namespace PortalProviderInterface
 			string ServerId, string InterfaceId
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>네트워크 인터페이스 VLAN 정보를 가져온다.</summary>

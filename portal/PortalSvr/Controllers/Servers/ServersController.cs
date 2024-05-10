@@ -158,7 +158,7 @@ namespace PortalSvr.Controllers.Servers
 			EnumServerState? SearchState,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetList(
@@ -184,7 +184,7 @@ namespace PortalSvr.Controllers.Servers
 			EnumServerState? SearchState,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetListDetails(
@@ -312,7 +312,7 @@ namespace PortalSvr.Controllers.Servers
 			[FromRoute] string ServerId
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_networkInterfaceProvider.GetList(
@@ -414,7 +414,7 @@ namespace PortalSvr.Controllers.Servers
 			[FromRoute] string ServerId, [FromRoute] string InterfaceId
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_networkInterfaceVlanProvider.GetList(

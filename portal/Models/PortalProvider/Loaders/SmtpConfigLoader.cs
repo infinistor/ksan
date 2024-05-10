@@ -22,7 +22,7 @@ namespace PortalProvider.Loaders
 	public class SmtpConfigLoader : ISmtpConfigLoader
 	{
 		/// <summary>환경 설정 로더</summary>
-		private ISystemConfigLoader m_configLoader;
+		private readonly ISystemConfigLoader m_configLoader;
 
 		/// <summary>생성자</summary>
 		/// <param name="loader">설정로더</param>

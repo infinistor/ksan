@@ -21,6 +21,9 @@ namespace PortalData.Requests.Disks
 	/// <summary>디스크 풀 등록/수정 요청 클래스</summary>
 	public class RequestDiskPool : CommonRequestData
 	{
+		/// <summary>디스크 풀 ID</summary>
+		public string Id { get; set; } = "";
+
 		/// <summary>디스크 풀 이름</summary>
 
 		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]

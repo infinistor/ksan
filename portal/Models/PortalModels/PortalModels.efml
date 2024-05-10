@@ -91,6 +91,8 @@
       <Member Name="ReadOnly" p1:Guid="e65510cd-e66e-4d56-87b6-6af4f02add81" />
       <Member Name="ReadWrite" p1:Guid="75cff32a-af96-4d67-afc3-5b9d3728bb94" />
       <Member Name="Maintenance" p1:Guid="07c28edc-0a22-4e59-a074-f2a856c0cbe2" />
+      <Member Name="DeletingRW" p1:Guid="842e6d00-1e2b-4cf9-bf4f-07bb96c082c0" />
+      <Member Name="DeletingRO" p1:Guid="36eb2936-f73a-437a-9a08-e53e250c1e14" />
     </EnumType>
     <EnumType Name="EnumDbDiskState" class="EnumDbDiskState" p1:Guid="384e8a83-27a5-4988-9f4a-d141ba29b974">
       <Documentation>
@@ -228,24 +230,6 @@
       </Documentation>
       <column name="" default="0" length="12" />
     </property>
-    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1b830739-9af8-4549-8fcf-46d1d4a7b3cb">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9560a47d-557b-43ec-9a03-538f24513d64">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8ad516ee-e460-4793-b3ce-f9354a268c6c">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" p1:unicode="False" />
-    </property>
     <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1c977d3e-d84a-456a-9154-f0911854dc28">
       <Documentation>
         <Summary>수정자 아이디</Summary>
@@ -258,11 +242,11 @@
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5d8945be-9508-4aad-b6f1-429bc5a07789">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAddOrUpdate" p1:ValidateRequired="false" p1:Guid="5d8945be-9508-4aad-b6f1-429bc5a07789">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
   </class>
   <class name="NetworkInterfaceVlan" entity-set="NetworkInterfaceVlans" p1:Guid="8e5a1197-1384-426e-9db0-e0ecda8acfcc">
@@ -305,24 +289,6 @@
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="fcb0d894-6e9d-4bc3-9068-256c2f2b33c9">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b3eefb1f-27d2-4485-a971-4672c3041716">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f4368581-d50e-478b-a30d-53ffdd9c433f">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" p1:unicode="False" />
-    </property>
     <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="037e1266-8ed6-40a3-a028-8a97cfdea7f5">
       <Documentation>
         <Summary>수정자 아이디</Summary>
@@ -335,11 +301,11 @@
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="149b0d37-fbd6-49a4-8f64-aef55692eee4">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAddOrUpdate" p1:ValidateRequired="false" p1:Guid="149b0d37-fbd6-49a4-8f64-aef55692eee4">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
   </class>
   <class name="Service" entity-set="Services" p1:Guid="a3098151-a299-44ba-bc7d-08d2475f3f16">
@@ -418,24 +384,6 @@
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="456c4974-fc4e-4de3-a532-5bac2e457e73">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="2d50e6ba-49c9-4c6b-8b81-952a5f1066fb">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfac6811-ffb5-4e12-b217-52df3a1ea780">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" p1:unicode="False" />
-    </property>
     <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e2f1323b-275e-45a1-863a-2d017dc6ca1d">
       <Documentation>
         <Summary>수정자 아이디</Summary>
@@ -448,11 +396,11 @@
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5a931cf9-dae5-4a3a-a824-5056a661bc88">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAddOrUpdate" p1:ValidateRequired="false" p1:Guid="5a931cf9-dae5-4a3a-a824-5056a661bc88">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
   </class>
   <class name="ServiceNetworkInterfaceVlan" entity-set="ServiceNetworkInterfaceVlans" p1:Guid="1b113066-08a9-4c83-8caf-6335db5ee000">
@@ -489,6 +437,9 @@
         <Summary>서버명</Summary>
       </Documentation>
       <column name="" unique="True" />
+    </property>
+    <property name="HostName" type="String" p1:ValidateRequired="true" p1:Guid="6dfe0431-30c7-488d-bc9c-1e3b7057f088">
+      <column name="" />
     </property>
     <property name="Description" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="39c29bb7-97ea-4ac2-a3dc-0fa4d3deb471">
       <Documentation>
@@ -562,11 +513,11 @@
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c0fe49bd-3811-4bdf-8f24-76846e1c382d">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAddOrUpdate" p1:ValidateRequired="false" p1:Guid="c0fe49bd-3811-4bdf-8f24-76846e1c382d">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
   </class>
   <class name="ServiceGroup" entity-set="ServiceGroups" p1:Guid="1fce8713-ca26-446b-a57f-d769f01a4b18">
@@ -603,24 +554,6 @@
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="2dedf590-6a7f-42d6-b65b-5bd60e54630d">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="4bcdb2d7-2d3e-4079-aa30-dd5e1a64f2be">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5e9db057-a8a6-4122-bf38-910ffa48feb7">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" p1:unicode="False" />
-    </property>
     <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e93f9e55-3aa2-4376-aaf2-bb4546001b25">
       <Documentation>
         <Summary>수정자 아이디</Summary>
@@ -633,11 +566,11 @@
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7e85b98b-df68-4db6-810b-f04bcbcf6199">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAddOrUpdate" p1:ValidateRequired="false" p1:Guid="7e85b98b-df68-4db6-810b-f04bcbcf6199">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
   </class>
   <class name="ApiKey" entity-set="ApiKeys" p1:Guid="9e27b4a7-7510-4ff7-836b-f3c643b4b5c4">
@@ -708,11 +641,11 @@
       </Documentation>
       <column name="" precision="6" scale="0" p1:unicode="False" />
     </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="df9d52a6-35af-408c-8c14-78ed79aebcc6">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="df9d52a6-35af-408c-8c14-78ed79aebcc6">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
     <property name="Message" type="Clob" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="42005bf6-06cd-4cab-9568-850fd48b52e9">
       <Documentation>
@@ -767,11 +700,11 @@
       </Documentation>
       <column name="" length="1000" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="a843e365-d6f0-4890-a23d-818a3ec1adc6">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAddOrUpdate" p1:ValidateRequired="true" p1:Guid="a843e365-d6f0-4890-a23d-818a3ec1adc6">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
   </class>
   <class name="UserLoginHistory" entity-set="UserLoginHistories" p1:Guid="647d66fd-8c77-4eee-b497-9c75d1db97c5">
@@ -1093,11 +1026,11 @@
       </Documentation>
       <column name="" length="1000" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="61310c7a-9aa1-40cd-8473-f0457b7f5fad">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="61310c7a-9aa1-40cd-8473-f0457b7f5fad">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
   </class>
   <class name="Disk" entity-set="Disks" p1:Guid="50aa3a79-7621-42e1-9871-879ef7fb207b">
@@ -1128,24 +1061,6 @@
       </Documentation>
       <column name="" unique="True" />
     </property>
-    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="488d3ec3-12ba-4205-9be8-57d4ada49a8f">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="ba9bb789-0511-4605-8dfe-086d311c1dc5">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="38240694-93f2-47e0-ae76-8888c468e14e">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" p1:unicode="False" />
-    </property>
     <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23b520cd-1eff-4bf6-9fae-35f4dd02683f">
       <Documentation>
         <Summary>수정자 아이디</Summary>
@@ -1158,11 +1073,11 @@
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="3f7b615f-b6c3-4759-a749-28abf9430a5b">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAddOrUpdate" p1:ValidateRequired="false" p1:Guid="3f7b615f-b6c3-4759-a749-28abf9430a5b">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
     <property name="Path" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ae78659f-da4f-4679-acb7-a4a6c258c537">
       <Documentation>
@@ -1253,24 +1168,6 @@
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="549b5140-d6b0-4f01-aee4-a2b197a151de">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9e471714-c9b3-4f91-ad5a-e37a9418cd99">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="243157e8-5245-45bf-90cf-b85c78297d4e">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" p1:unicode="False" />
-    </property>
     <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ed399653-79c6-4a94-9be4-10101f733d77">
       <Documentation>
         <Summary>수정자 아이디</Summary>
@@ -1283,11 +1180,11 @@
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f88e1154-0b2a-434b-8c21-c1941621fc07">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAddOrUpdate" p1:ValidateRequired="false" p1:Guid="f88e1154-0b2a-434b-8c21-c1941621fc07">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
-      <column name="" p1:unicode="False" />
+      <column name="" default="NOW()" p1:unicode="False" />
     </property>
     <property name="DiskPoolType" type="PortalModels.EnumDbDiskPoolType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
       <Documentation>
@@ -1316,11 +1213,11 @@
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="90429425-b9b7-4d5d-8968-5b0fa4d564b9">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="90429425-b9b7-4d5d-8968-5b0fa4d564b9">
         <Documentation>
           <Summary>등록일시</Summary>
         </Documentation>
-        <column name="" p1:unicode="False" />
+        <column name="" default="NOW()" p1:unicode="False" />
       </key-property>
     </composite-id>
     <property name="LoadAverage1M" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e6ff2054-004f-458c-93e7-7032c47fbb2b">
@@ -1365,11 +1262,11 @@
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c1b19f80-ee81-4640-9bf0-f6024de73c79">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="c1b19f80-ee81-4640-9bf0-f6024de73c79">
         <Documentation>
           <Summary>등록일시</Summary>
         </Documentation>
-        <column name="" p1:unicode="False" />
+        <column name="" default="NOW()" p1:unicode="False" />
       </key-property>
     </composite-id>
     <property name="BandWidth" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ac739e4f-b305-4b8c-a161-0a486fbc9eec">
@@ -1402,11 +1299,11 @@
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="655b5914-cdb9-41db-ac46-6ec9c7860b21">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="655b5914-cdb9-41db-ac46-6ec9c7860b21">
         <Documentation>
           <Summary>등록일시</Summary>
         </Documentation>
-        <column name="" p1:unicode="False" />
+        <column name="" default="NOW()" p1:unicode="False" />
       </key-property>
     </composite-id>
     <property name="CpuUsage" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a161a18b-3d52-4f67-b97f-cfd7316fef55">
@@ -1458,11 +1355,11 @@
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9e9c88b4-ace6-4341-a52f-2ff45fb3c7c0">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAddOrUpdate" p1:ValidateRequired="true" p1:Guid="9e9c88b4-ace6-4341-a52f-2ff45fb3c7c0">
       <Documentation>
         <Summary>추가 일자</Summary>
       </Documentation>
-      <column name="" />
+      <column name="" default="NOW()" />
     </property>
     <property name="LastVersion" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="464500ad-d539-4521-a579-205fca3bb42d">
       <Documentation>
@@ -1545,11 +1442,11 @@
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="398726f6-cb2f-4410-a152-51821910520f">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="398726f6-cb2f-4410-a152-51821910520f">
         <Documentation>
           <Summary>생성시간</Summary>
         </Documentation>
-        <column name="" />
+        <column name="" default="NOW()" />
       </key-property>
     </composite-id>
     <property name="UsedInode" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="6ab10ce7-be5b-4342-a461-e876e0cd4aa1">
@@ -1629,11 +1526,11 @@
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="5fe7a5d1-d75d-497d-b8ab-0fe37b2cdd49">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="5fe7a5d1-d75d-497d-b8ab-0fe37b2cdd49">
         <Documentation>
           <Summary>등록 시간</Summary>
         </Documentation>
-        <column name="" />
+        <column name="" default="NOW()" />
       </key-property>
     </composite-id>
     <property name="EventType" type="PortalModels.EnumDbServiceEventType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="65eed8fc-041d-41fa-80b3-7654e1832e0f">
@@ -2146,19 +2043,19 @@
       </Documentation>
       <column name="" length="100" />
     </property>
-    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b6c53812-b37b-4fe3-8d71-edce474d39ba">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" value-generated="OnAddOrUpdate" p1:ValidateRequired="true" p1:Guid="b6c53812-b37b-4fe3-8d71-edce474d39ba">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
-      <column name="" />
+      <column name="" default="NOW()" />
     </property>
-    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="400" p1:ValidateRequired="true" p1:Guid="042e44a9-4298-4891-9564-c0fa9cdd3503">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="400" p1:ValidateRequired="false" p1:Guid="042e44a9-4298-4891-9564-c0fa9cdd3503">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="400" />
     </property>
-    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="0e0ef78c-6ca7-4af4-b9d8-a1f6acd26469">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="0e0ef78c-6ca7-4af4-b9d8-a1f6acd26469">
       <Documentation>
         <Summary>등록 아이디</Summary>
       </Documentation>
@@ -2314,20 +2211,6 @@
         <property name="Id" />
       </end2>
     </association>
-    <association name="User_ServiceGroup_Reg" cardinality="OneToMany" p1:Guid="e5df32cb-dcd8-41fb-a591-def555d3cf14">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="52cdbfeb-c7f9-4ab0-8f0e-1cda484d3aec">
-        <Documentation>
-          <Summary>등록 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegServiceGroups" class="User" relation-class="ServiceGroup" lazy="False" p1:Guid="087dde4d-99f4-4a70-9962-602142818a61">
-        <Documentation>
-          <Summary>등록 서비스 그룹 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
-      </end2>
-    </association>
     <association name="User_ServiceGroup_Mod" cardinality="OneToMany" p1:Guid="9bffa19f-1610-417c-946e-fcb6b00b6564">
       <end1 multiplicity="ZeroOrOne" name="ModUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="1e0ba52c-da8c-4ce4-8e57-6bdd777dbe6a">
         <Documentation>
@@ -2342,20 +2225,6 @@
         <property name="ModId" />
       </end2>
     </association>
-    <association name="User_Service_Reg" cardinality="OneToMany" p1:Guid="0d43c566-7666-47e7-bff2-f1fbc3cda341">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="f66d6e6c-fed6-4fe0-8462-357b97c09326">
-        <Documentation>
-          <Summary>등록 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegServices" class="User" relation-class="Service" lazy="False" p1:Guid="9d872981-b043-418b-97cb-7c044bef4def">
-        <Documentation>
-          <Summary>등록 서비스 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
-      </end2>
-    </association>
     <association name="User_Service_Mod" cardinality="OneToMany" p1:Guid="b4c779b7-26cf-477b-8d46-ec1379e02a83">
       <end1 multiplicity="ZeroOrOne" name="ModUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="9892cf5a-5d6e-4087-b861-d68b554a7558">
         <Documentation>
@@ -2368,20 +2237,6 @@
           <Summary>수정 서비스 목록</Summary>
         </Documentation>
         <property name="ModId" />
-      </end2>
-    </association>
-    <association name="User_NetworkInterfaceVlan" cardinality="OneToMany" p1:Guid="4ed7dec9-ffc6-4cba-a21e-c8f1eecc6673">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="NetworkInterfaceVlan" relation-class="User" constrained="True" lazy="False" p1:Guid="426c626d-bb62-412a-b03e-f6ccf9ef63cd">
-        <Documentation>
-          <Summary>등록 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegNetworkInterfaceVlans" class="User" relation-class="NetworkInterfaceVlan" lazy="False" p1:Guid="15c251bc-94d9-49cc-9c55-2a84ba9f22a1">
-        <Documentation>
-          <Summary>등록 네트워크 인터페이스 VLAN 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
       </end2>
     </association>
     <association name="User_NetworkInterfaceVlan1" cardinality="OneToMany" p1:Guid="1fce065d-7f16-45be-90ac-ec021a4e8a89">
@@ -2446,17 +2301,6 @@
           <Summary>서비스 네트워크 인터페이스 VLAN 목록</Summary>
         </Documentation>
         <property name="VlanId" />
-      </end2>
-    </association>
-    <association name="User_NetworkInterface1" cardinality="OneToMany" p1:Guid="f98a38b3-817e-4ee3-957e-e5e8ec4f3ec3">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="NetworkInterface" relation-class="User" constrained="True" lazy="False" p1:Guid="b59b13da-0806-42c7-bb26-5cab903b9fef">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegNetworkInterfaces" class="User" relation-class="NetworkInterface" lazy="False" p1:Guid="e3af8bc0-6f2a-41a8-b854-44c20df32b01">
-        <Documentation>
-          <Summary>등록 네트워크 인터페이스 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
       </end2>
     </association>
     <association name="Server_Disk" cardinality="OneToMany" on-delete="Restrict" p1:Guid="62d1c3ea-aecc-4555-ac44-a1347c784f3e">
@@ -2552,11 +2396,35 @@
       </end2>
     </association>
     <association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
-      <end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+      <end1 multiplicity="ZeroOrOne" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
         <property name="Id" />
       </end1>
       <end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">
         <property name="DiskPoolId" />
+      </end2>
+    </association>
+    <association name="User_DiskPool" cardinality="OneToMany" p1:Guid="7fb6752b-c8cf-464b-897c-4d81299dc80e">
+      <end1 multiplicity="ZeroOrOne" name="ModUser" class="DiskPool" relation-class="User" constrained="True" lazy="False" p1:Guid="b3b2926b-6b7f-4667-8e4a-8fd77e2120a7">
+        <property name="Id" />
+      </end1>
+      <end2 multiplicity="Many" name="ModDiskPool" class="User" relation-class="DiskPool" lazy="False" p1:Guid="2ebf3b44-dfc2-4412-a7b2-8a38146bb250">
+        <property name="ModId" />
+      </end2>
+    </association>
+    <association name="User_S3AccessIp" cardinality="OneToMany" p1:Guid="26901469-059d-4c51-ad8b-c06c4248b268">
+      <end1 multiplicity="ZeroOrOne" name="ModUser" class="S3AccessIp" relation-class="User" constrained="True" lazy="False" p1:Guid="364911ce-f649-480a-b759-311091874491">
+        <property name="Id" />
+      </end1>
+      <end2 multiplicity="Many" name="ModAccessIps" class="User" relation-class="S3AccessIp" lazy="False" p1:Guid="acbd2c5f-69b3-44aa-865b-ee9e7ec90f4a">
+        <property name="ModId" />
+      </end2>
+    </association>
+    <association name="User_Disk" cardinality="OneToMany" p1:Guid="c862b932-bc03-4afe-8daa-fdbe5f21b139">
+      <end1 multiplicity="ZeroOrOne" name="ModUser" class="Disk" relation-class="User" constrained="True" lazy="False" p1:Guid="26ba352a-c332-40e4-bee9-3773dcdea8d5">
+        <property name="Id" />
+      </end1>
+      <end2 multiplicity="Many" name="ModDisks" class="User" relation-class="Disk" lazy="False" p1:Guid="79865f69-1e26-4374-83d1-bf7a4be48178">
+        <property name="ModId" />
       </end2>
     </association>
   </associations>

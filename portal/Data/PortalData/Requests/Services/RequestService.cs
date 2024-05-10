@@ -24,6 +24,9 @@ namespace PortalData.Requests.Services
 		/// <summary>그룹 아이디</summary>
 		public string GroupId { get; set; }
 
+		/// <summary>서비스 아이디</summary>
+		public string Id { get; set; }
+
 		/// <summary>서비스명</summary>
 		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name

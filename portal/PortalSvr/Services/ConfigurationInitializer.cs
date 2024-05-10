@@ -39,11 +39,8 @@ namespace PortalSvr.Services
 		/// <summary>설정 정보</summary>
 		protected readonly IConfiguration m_configuration;
 
-		/// <summary>로거</summary>
-		private readonly ILogger m_logger;
-
 		/// <summary> KsanConfig </summary>
-		public static string KsanConfig = "/usr/local/ksan/etc/ksanAgent.conf";
+		public static readonly string KsanConfig = "/usr/local/ksan/etc/ksanAgent.conf";
 
 		/// <summary>생성자</summary>
 		/// <param name="configProvider">설정에 대한 프로바이더 객체</param>
@@ -60,7 +57,6 @@ namespace PortalSvr.Services
 			m_configProvider = configProvider;
 			m_apiKeyProvider = apiKeyProvider;
 			m_configuration = configuration;
-			m_logger = logger;
 		}
 
 		/// <summary>설정이 없는 경우, 기본 설정을 생성한다.</summary>

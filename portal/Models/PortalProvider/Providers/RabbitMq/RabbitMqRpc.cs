@@ -82,12 +82,9 @@ namespace PortalProvider.Providers.RabbitMQ
 				m_receiver = new EventingBasicConsumer(m_channel);
 				m_receiver.Received += (_, ea) =>
 				{
-					if (ea != null)
-					{
 						// 연관 아이디가 동일한 경우, 응답 큐에 넣는다.
-						if (ea.BasicProperties.CorrelationId == correlationId)
+					if (ea != null && ea.BasicProperties.CorrelationId == correlationId)
 							m_responseQueue.Add(ea.Body.ToArray().GetString());
-					}
 				};
 			}
 			catch (Exception ex)
@@ -131,7 +128,7 @@ namespace PortalProvider.Providers.RabbitMQ
 		/// <returns>전송 결과 응답 객체</returns>
 		public ResponseData<string> Send(string RoutingKey, object SendingObject, int WaitForResponseTimeoutSec)
 		{
-			ResponseData<string> Result = new ResponseData<string>();
+			var Result = new ResponseData<string>();
 
 			var CancellationTokenSource = new CancellationTokenSource();
 			try

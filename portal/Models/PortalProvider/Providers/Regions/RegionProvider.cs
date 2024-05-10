@@ -100,53 +100,51 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>리전을 동기화한다.</summary>
-		/// <param name="Request">리전 정보</param>
+		/// <param name="Requests">리전 정보</param>
 		/// <returns>리전 등록 결과</returns>
 		public async Task<ResponseData> Sync(List<RequestRegionSync> Requests)
 		{
 			var Result = new ResponseData();
 
-			using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+			using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+			try
 			{
-				try
+				// 파라미터가 유효하지 않은 경우
+				foreach (var Request in Requests)
 				{
-					// 파라미터가 유효하지 않은 경우
-					foreach (var Request in Requests)
+					if (!Request.IsValid())
+						return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+
+					// 해당 리전 객체를 생성한다.
+					var NewData = new Region
 					{
-						if (!Request.IsValid())
-							return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+						Name = Request.Name,
+						Address = Request.Address,
+						Port = Request.Port,
+						SSLPort = Request.SSLPort,
+						AccessKey = Request.AccessKey,
+						SecretKey = Request.SecretKey
+					};
 
-						// 해당 리전 객체를 생성한다.
-						var NewData = new Region
-						{
-							Name = Request.Name,
-							Address = Request.Address,
-							Port = Request.Port,
-							SSLPort = Request.SSLPort,
-							AccessKey = Request.AccessKey,
-							SecretKey = Request.SecretKey
-						};
-
-						// 리전 등록
-						await m_dbContext.Regions.AddAsync(NewData);
-					}
-					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-					await Transaction.CommitAsync();
-
-					Result.Result = EnumResponseResult.Success;
-					Result.Code = Resource.SC_COMMON__SUCCESS;
-					Result.Message = Resource.SM_COMMON__CREATED;
+					// 리전 등록
+					await m_dbContext.Regions.AddAsync(NewData);
 				}
-				catch (Exception ex)
-				{
-					await Transaction.RollbackAsync();
-					NNException.Log(ex);
+				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+				await Transaction.CommitAsync();
 
-					Result.Code = Resource.EC_COMMON__EXCEPTION;
-					Result.Message = Resource.EM_COMMON__EXCEPTION;
-				}
-				return Result;
+				Result.Result = EnumResponseResult.Success;
+				Result.Code = Resource.SC_COMMON__SUCCESS;
+				Result.Message = Resource.SM_COMMON__CREATED;
 			}
+			catch (Exception ex)
+			{
+				await Transaction.RollbackAsync();
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+			return Result;
 		}
 
 		/// <summary>리전 식별자로 특정 리전을 가져온다.</summary>
@@ -168,28 +166,26 @@ namespace PortalProvider.Providers.Accounts
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 리전 삭제
-						m_dbContext.Regions.Remove(Exist);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
+					// 리전 삭제
+					m_dbContext.Regions.Remove(Exist);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
-						Result.Code = Resource.SC_COMMON__SUCCESS;
-						Result.Message = Resource.SM_COMMON__CREATED;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					Result.Result = EnumResponseResult.Success;
+					Result.Code = Resource.SC_COMMON__SUCCESS;
+					Result.Message = Resource.SM_COMMON__CREATED;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)

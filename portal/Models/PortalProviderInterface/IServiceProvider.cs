@@ -38,14 +38,14 @@ namespace PortalProviderInterface
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(string Id, EnumServiceState State, string ModId = "", string ModName = "");
+		Task<ResponseData> UpdateState(string Id, EnumServiceState State, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서비스 상태 수정</summary>
 		/// <param name="Request">상태 수정 요청 객체</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(RequestServiceState Request, string ModId = "", string ModName = "");
+		Task<ResponseData> UpdateState(RequestServiceState Request, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서비스 사용 정보 수정</summary>
 		/// <param name="Id">서비스 아이디 / 이름</param>
@@ -66,14 +66,14 @@ namespace PortalProviderInterface
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서비스 HA 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateHaAction(string Id, EnumHaAction State, string ModId = "", string ModName = "");
+		Task<ResponseData> UpdateHaAction(string Id, EnumHaAction State, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서비스 HA 상태 수정</summary>
 		/// <param name="Request">HA 상태 수정 요청 객체</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서비스 HA 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateHaAction(RequestServiceHaAction Request, string ModId = "", string ModName = "");
+		Task<ResponseData> UpdateHaAction(RequestServiceHaAction Request, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서비스 삭제</summary>
 		/// <param name="Id">서비스 아이디 / 이름</param>
@@ -94,7 +94,7 @@ namespace PortalProviderInterface
 			EnumServiceState? SearchState = null, EnumServiceType? SearchType = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>서비스 정보를 가져온다.</summary>
@@ -146,7 +146,7 @@ namespace PortalProviderInterface
 		Task<ResponseList<ResponseServiceEvent>> GetEventList(string Id,
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		);
 	}
 }

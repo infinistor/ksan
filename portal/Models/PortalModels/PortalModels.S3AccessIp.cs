@@ -46,13 +46,15 @@ namespace PortalModels
 		public virtual string IpAddress { get; set; }
 
 		/// <summary> 등록일시 </summary>
-		public virtual DateTime RegDate { get; set; }
+		public virtual DateTime ModDate { get; set; }
 
 		/// <summary> 등록자명 </summary>
-		public virtual string RegName { get; set; }
+		public virtual string ModName { get; set; }
 
 		/// <summary> 등록 아이디 </summary>
-		public virtual Guid RegId { get; set; }
+		public virtual Guid? ModId { get; set; }
+
+		public virtual User ModUser { get; set; }
 
 		#region Extensibility Method Definitions
 

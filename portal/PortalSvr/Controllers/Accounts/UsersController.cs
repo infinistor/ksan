@@ -71,7 +71,7 @@ namespace PortalSvr.Controllers.Accounts
 			string SearchRoleName = "", DateTime? RegStartDate = null, DateTime? RegEndDate = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Response = new ResponseList<ResponseUserWithRoles>();
@@ -145,7 +145,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
 		[HttpGet("{Id}")]
-		public async Task<ActionResult> Get([FromRoute] string Id)
+		public async Task<ActionResult> GetUser([FromRoute] string Id)
 		{
 			var Response = new ResponseData<ResponseUserWithRoles>();
 			try
@@ -171,7 +171,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
 		[HttpGet("{Id}/Claims")]
-		public async Task<ActionResult> GetClaims([FromRoute] string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "")
+		public async Task<ActionResult> GetClaims([FromRoute] string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = null)
 		{
 			var Response = new ResponseList<ResponseClaim>();
 			try
@@ -197,7 +197,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
 		[HttpGet("{Id}/UserClaims")]
-		public async Task<ActionResult> GetUserClaims([FromRoute] string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "")
+		public async Task<ActionResult> GetUserClaims([FromRoute] string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = null)
 		{
 			var Response = new ResponseList<ResponseClaim>();
 			try
@@ -220,7 +220,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add")]
 		[HttpPost]
-		public async Task<ActionResult> Post([FromBody] RequestUserRegist Request)
+		public async Task<ActionResult> Post([FromBody] RequestUserCreate Request)
 		{
 			return Json(await m_dataProvider.Add(Request));
 		}

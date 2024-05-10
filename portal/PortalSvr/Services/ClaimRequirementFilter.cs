@@ -73,11 +73,9 @@ namespace PortalSvr.Services
 			{
 				// 권한을 가져온다.
 				ResponseList<ResponseClaim> responseClaims = await m_accountProvider.GetClaims(context.HttpContext.User);
-				if (responseClaims.Result == EnumResponseResult.Success)
-				{
-					if (responseClaims.Data.Items.Any(i => m_claimValues.Contains(i.ClaimValue)))
-						hasClaim = true;
-				}
+				// 권한을 가지고 있는지 확인한다.
+				if (responseClaims.Result == EnumResponseResult.Success && responseClaims.Data.Items.Exists(i => m_claimValues.Contains(i.ClaimValue)))
+					hasClaim = true;
 
 				// 권한을 가지지 못한 경우
 				if (!hasClaim)

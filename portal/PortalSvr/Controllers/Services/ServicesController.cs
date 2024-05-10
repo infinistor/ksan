@@ -139,6 +139,7 @@ namespace PortalSvr.Controllers.Services
 
 		/// <summary>서비스 목록을 가져온다.</summary>
 		/// <param name="SearchState">검색할 서비스 상태 목록</param>
+		/// <param name="SearchType">검색할 서비스 타입 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, ServiceType)</param>
@@ -151,7 +152,7 @@ namespace PortalSvr.Controllers.Services
 		public async Task<ActionResult> GetServices(
 			EnumServiceState? SearchState = null, EnumServiceType? SearchType = null, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetList(
@@ -245,7 +246,7 @@ namespace PortalSvr.Controllers.Services
 		[HttpGet("Event/{Id}")]
 		public async Task<ActionResult> GetServiceEvents([FromRoute] string Id, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetEventList(Id, Skip, CountPerPage

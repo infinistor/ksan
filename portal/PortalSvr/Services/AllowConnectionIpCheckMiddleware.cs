@@ -124,9 +124,6 @@ namespace PortalSvr.Services
 			try
 			{
 				if (httpRequest.Path.Value != null && httpRequest.Path.Value.ToLower().Contains("/account/")
-				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/login")
-				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/logout")
-				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/needlogin")
 				)
 					Result = true;
 			}

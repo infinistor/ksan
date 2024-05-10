@@ -41,10 +41,6 @@ namespace PortalSvr.Services
 		public static readonly string KEY_LOG_DEFAULT = "Default";
 		/// <summary> Microsoft </summary>
 		public static readonly string KEY_LOG_MICROSOFT = "Microsoft";
-		/// <summary> Microsoft.Hosting.Lifetime </summary>
-		public static readonly string KEY_LOG_MICROSOFT_HOSTING_LIFETIME = "Microsoft.Hosting.Lifetime";
-		/// <summary> PortalProvider </summary>
-		public static readonly string KEY_LOG_PORTAL_PROVIDER = "PortalProvider";
 		/// <summary> allowedHosts </summary>
 		public static readonly string KEY_ALLOWED_HOSTS = "AllowedHosts";
 		/// <summary> MariaDB </summary>
@@ -192,9 +188,7 @@ namespace PortalSvr.Services
 			if (GetEnvValue(Resource.ENV_LOG_LEVEL, out string LogLevel) && !string.IsNullOrWhiteSpace(LogLevel))
 			{
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_DEFAULT] = LogLevel;
-				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT] = LogLevel;
-				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT_HOSTING_LIFETIME] = LogLevel;
-				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_PORTAL_PROVIDER] = LogLevel;
+				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT] = "Warning";
 			}
 
 			// Database

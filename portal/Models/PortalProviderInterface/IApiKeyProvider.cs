@@ -32,13 +32,18 @@ namespace PortalProviderInterface
 		/// <returns>API 키 정보 목록 객체</returns>
 		Task<ResponseList<ResponseApiKey>> GetApiKeys(Guid UserId
 			, int Skip = 0, int CountPerPage = 100, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "");
+			, List<string> SearchFields = null, string SearchKeyword = null);
 
 		/// <summary>해당 사용자의 API 키 정보를 가져온다.</summary>
 		/// <param name="UserId">사용자 아이디</param>
 		/// <param name="KeyId">키 아이디</param>
 		/// <returns>API 키 정보 목록 객체</returns>
 		Task<ResponseData<ResponseApiKey>> GetApiKey(Guid UserId, Guid KeyId);
+
+		/// <summary>해당 키 아이디의 API 키 정보를 가져온다.</summary>
+		/// <param name="KeyValue">키 값</param>
+		/// <returns>API 키 정보 목록 객체</returns>
+		Task<ResponseData<ResponseApiKey>> GetApiKey(string KeyValue);
 
 		/// <summary>해당 사용자의 API 키를 발행한다.</summary>
 		/// <param name="UserId">사용자 아이디</param>
@@ -57,11 +62,6 @@ namespace PortalProviderInterface
 		/// <param name="KeyId">키 아이디</param>
 		/// <returns>API 키 해제 결과 객체</returns>
 		Task<ResponseData> RevokeApiKey(Guid UserId, Guid KeyId);
-
-		/// <summary>해당 키 아이디의 API 키 정보를 가져온다.</summary>
-		/// <param name="KeyValue">키 값</param>
-		/// <returns>API 키 정보 목록 객체</returns>
-		Task<ResponseData<ResponseApiKey>> GetApiKey(string KeyValue);
 
 		/// <summary> 메인키의 정보를 가져온다. </summary>
 		/// <returns> API 키 객체 </returns>

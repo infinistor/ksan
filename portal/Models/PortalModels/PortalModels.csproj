@@ -7,12 +7,9 @@
 
 	<ItemGroup>
 	  <Compile Remove="PortalModels.BucketList.cs" />
+	  <Compile Remove="PortalModels.DiskDeletingQueue.cs" />
 	  <Compile Remove="PortalModels.S3Logging.cs" />
 	  <Compile Remove="PortalModels.UsageAsset.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="PortalModels.Blank.tmpl" />
 	</ItemGroup>
 
 	<ItemGroup>

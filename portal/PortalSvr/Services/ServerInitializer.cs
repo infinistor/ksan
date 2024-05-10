@@ -26,6 +26,8 @@ using System.Threading;
 using PortalData.Requests.Region;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
+using PortalData.Requests.Ksan;
+using Newtonsoft.Json;
 
 namespace PortalSvr.Services
 {
@@ -65,7 +67,7 @@ namespace PortalSvr.Services
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
 			m_logger.LogInformation("Server Initialize Timer Create");
-			m_timer = new Timer(DoWork, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5));
+			m_timer = new Timer(DoWork, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60));
 			return Task.CompletedTask;
 		}
 
@@ -79,7 +81,18 @@ namespace PortalSvr.Services
 		/// <summary> 서버 감시 해제 </summary>
 		public void Dispose()
 		{
-			if (m_timer != null) m_timer.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		/// <summary> 서버 감시 해제 </summary>
+		/// <param name="disposing">해제 여부</param>
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				m_timer?.Dispose();
+			}
 		}
 
 		async void DoWork(object state)
@@ -93,29 +106,58 @@ namespace PortalSvr.Services
 					m_logger.LogInformation("Server Initialize Start");
 
 					// 내부 서비스용 API 키를 가져온다.
-					var ApiKey = await ServiceScope.ServiceProvider.GetService<IApiKeyProvider>().GetMainApiKey() ?? throw new Exception("Internal Service ApiKey is null");
+					var ApiKey = await ServiceScope.ServiceProvider.GetService<IApiKeyProvider>().GetMainApiKey();
+					if (ApiKey == null)
+					{
+						m_logger.LogInformation("Internal Service ApiKey is null");
+						return;
+					}
 
-					if (!Guid.TryParse(ApiKey.UserId, out Guid UserGuid))
-						throw new Exception("Internal Service ApiKey UserGuid is Empty");
-
-					// 서버가 존재하지 않을 경우
+					// 서버정보를 가져온다.
 					var m_serverProvider = ServiceScope.ServiceProvider.GetService<IServerProvider>();
 					var Servers = await m_serverProvider.GetList();
+					// 서버가 존재하지 않을 경우
 					if (Servers == null || Servers.Result != EnumResponseResult.Success || Servers.Data.Items.Count < 1)
 					{
 						// 서버를 등록한다
-						var Response = await m_serverProvider.Initialize(new RequestServerInitialize() { ServerIp = m_configuration["AppSettings:Host"] });
+						var Request = new RequestServerInitialize() { Ip = m_configuration["AppSettings:Host"] };
+						if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVER_ID, out string TempServerId)) Request.Id = TempServerId;
+						if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVER_NAME, out string TempServerName)) Request.Name = TempServerName;
+						if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVICE_AGENT_ID, out string TempAgentId)) Request.AgentServiceId = TempAgentId;
+
+						m_logger.LogInformation($"Server Add Start. {JsonConvert.SerializeObject(Request)}");
+
+						var Response = await m_serverProvider.Initialize(Request);
 
 						// 서버 등록을 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"Server Add Failure. {Response.Message}");
+						if (Response == null)
+						{
+							m_logger.LogError($"Server Add Failure. Response is null");
+							return;
+						}
+						else if (Response.Result != EnumResponseResult.Success)
+						{
+							m_logger.LogInformation($"Server Add Failure. {Response.Message}");
+							return;
+						}
+						else m_logger.LogInformation($"Server Add Success");
 
 						// 서버 조회를 실패할 경우
 						Servers = await m_serverProvider.GetList();
-						if (Servers == null || Servers.Result != EnumResponseResult.Success || Servers.Data.Items.Count < 1)
-							throw new Exception($"Server Add Failure. {Response.Message}");
+						if (Servers == null)
+						{
+							m_logger.LogError($"Server Add Failure. Server is null");
+							return;
+						}
+						else if (Servers.Result != EnumResponseResult.Success || Servers.Data.Items.Count < 1)
+						{
+							m_logger.LogError($"Server Add Failure. {Servers.Message}");
 
-						m_logger.LogInformation($"Server Add Success");
+							return;
+						}
 					}
+
+					m_logger.LogInformation($"Get Server Info");
 
 					//서버 정보를 가져온다.
 					var Server = Servers.Data.Items[0];
@@ -130,23 +172,8 @@ namespace PortalSvr.Services
 						if (Networks != null && Networks.Data.Items.Count > 0) break;
 						else Thread.Sleep(1000);
 					}
+					m_logger.LogInformation($"Ksan Agent is Running");
 
-					// 자기자신의 서비스를 등록한다.
-					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
-					var KsanPortalApi = await m_serviceProvider.GetList(SearchType: EnumServiceType.ksanApiPortal);
-
-					// 서비스가 존재하지 않을 경우
-					if (KsanPortalApi.Data.Items.Count == 0)
-					{
-						var KsanPortalApiName = "portal-api1";
-
-						var Response = await m_serviceProvider.Add(new RequestService()
-						{
-							Name = KsanPortalApiName,
-							ServiceType = EnumServiceType.ksanApiPortal
-						});
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{KsanPortalApiName} Add Failure. {Response.Message}");
-					}
 
 					//디스크풀이 존재하는지 확인한다.
 					var m_diskPoolProvider = ServiceScope.ServiceProvider.GetService<IDiskPoolProvider>();
@@ -154,14 +181,28 @@ namespace PortalSvr.Services
 					if (DiskPools.Data.Items.Count == 0)
 					{
 						var DiskPoolName = "diskpool1";
+						var Request = new RequestDiskPool() { Name = DiskPoolName, ReplicationType = EnumDiskPoolReplicaType.OnePlusZero };
+
+						// 환경변수에 기본 디스크풀 Id가 존재할 경우 사용한다.
+						if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_DISK_POOL_ID, out string DefaultDiskPoolId)) Request.Id = DefaultDiskPoolId;
+
+						m_logger.LogInformation($"DiskPool Add Start. {JsonConvert.SerializeObject(Request)}");
 
 						// 디스크풀이 존재하지 않을 경우 생성한다.
-						var Request = new RequestDiskPool() { Name = DiskPoolName, ReplicationType = EnumDiskPoolReplicaType.OnePlusZero };
 						var Response = await m_diskPoolProvider.Add(Request);
 
 						// 디스크풀 생성에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{DiskPoolName} Add Failure. {Response.Message}");
-						else m_logger.LogInformation($"{DiskPoolName} Add Success");
+						if (Response == null)
+						{
+							m_logger.LogError($"{DiskPoolName} Add Failure. Response is null");
+							return;
+						}
+						else if (Response.Result != EnumResponseResult.Success)
+						{
+							m_logger.LogError($"{DiskPoolName} Add Failure. {Response.Message}");
+							return;
+						}
+						m_logger.LogInformation($"{DiskPoolName} Add Success");
 						var DiskPool = Response;
 
 						//disk가 존재하는지 확인한다.
@@ -191,19 +232,32 @@ namespace PortalSvr.Services
 									var DiskResponse = await m_diskProvider.Add(ServerName, DiskRequest);
 
 									// 디스크 등록에 실패할 경우
-									if (DiskResponse == null || DiskResponse.Result != EnumResponseResult.Success) throw new Exception($"{DiskRequest.Name} Add Failure. {DiskResponse.Message}");
+									if (DiskResponse == null)
+									{
+										m_logger.LogError($"{DiskRequest.Name} Add Failure. Response is null");
+										return;
+									}
+									else if (DiskResponse.Result != EnumResponseResult.Success)
+									{
+										m_logger.LogError($"{DiskRequest.Name} Add Failure. {DiskResponse.Message}");
+										return;
+									}
 									else m_logger.LogInformation($"{DiskRequest.Name} Add Success");
 								}
 							}
 						}
 					}
 
-					//유저가 존재하지 않을 경우 생성한다.
+					//유저가 존재하는지 확인한다.
 					var m_userProvider = ServiceScope.ServiceProvider.GetService<IKsanUserProvider>();
-					var UserName = "ksanuser";
+					var UserName = "ksanUser";
 					var User = await m_userProvider.GetUser(UserName);
+
+					// 유저가 존재하지 않을 경우 생성한다.
 					if (User == null || User.Result != EnumResponseResult.Success)
 					{
+
+						EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ID, out string UserId);
 						EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ACCESS_KEY, out string AccessKey);
 						EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_SECRET_KEY, out string SecretKey);
 
@@ -212,19 +266,39 @@ namespace PortalSvr.Services
 							m_logger.LogInformation("User Create Skip");
 						else
 						{
-							var Response = await m_userProvider.Add(UserName, AccessKey, SecretKey);
+							// 유저 생성
+							var Request = new RequestKsanUser()
+							{
+								Name = UserName,
+								Id = UserId,
+								AccessKey = AccessKey,
+								SecretKey = SecretKey
+							};
+							m_logger.LogInformation($"User Create Start.{JsonConvert.SerializeObject(Request)}");
+
+							var Response = await m_userProvider.Add(Request);
 
 							// 유저 생성에 실패할 경우
-							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{UserName} Add Failure. {Response.Message}");
+							if (Response == null)
+							{
+								m_logger.LogError($"{UserName} Add Failure. Response is null");
+								return;
+							}
+							else if (Response.Result != EnumResponseResult.Success)
+							{
+								m_logger.LogError($"{UserName} Add Failure. {Response.Message}");
+								return;
+							}
 							else m_logger.LogInformation($"{UserName} Add Success");
 						}
 					}
 
-					//리전이 존재하지 않을 경우 생성한다.
+					// 리전이 존재하는지 확인한다.
 					var m_regionProvider = ServiceScope.ServiceProvider.GetService<IRegionProvider>();
 					var RegionName = m_configuration["AppSettings:RegionName"];
-
 					var Region = await m_regionProvider.Get(RegionName);
+
+					//리전이 존재하지 않을 경우 생성한다.
 					if (Region == null || Region.Result != EnumResponseResult.Success)
 					{
 						var Request = new RequestRegion()
@@ -234,10 +308,22 @@ namespace PortalSvr.Services
 							Port = 7070,
 							SSLPort = 7443
 						};
+						
+						m_logger.LogInformation($"Region Add Start.{JsonConvert.SerializeObject(Request)}");
+
 						var Response = await m_regionProvider.Add(Request);
 
 						// 리전 생성에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{RegionName}6 Add Failure. {Response.Message}");
+						if (Response == null)
+						{
+							m_logger.LogError($"{RegionName} Add Failure. Response is null");
+							return;
+						}
+						else if (Response.Result != EnumResponseResult.Success)
+						{
+							m_logger.LogError($"{RegionName} Add Failure. {Response.Message}");
+							return;
+						}
 						else m_logger.LogInformation($"{RegionName} Add Success");
 					}
 
@@ -256,6 +342,8 @@ namespace PortalSvr.Services
 					// 모두 제외할 경우
 					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_ALL, StringComparison.OrdinalIgnoreCase))) return;
 
+					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
+					
 					// 제외 서비스 목록에 GW가 있는지 확인한다.
 					if (!ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_GW, StringComparison.OrdinalIgnoreCase)))
 					{
@@ -271,10 +359,24 @@ namespace PortalSvr.Services
 								ServiceType = EnumServiceType.ksanGW,
 							};
 
-							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							// 환경변수에 기본 GW Id가 존재할 경우 사용한다.
+							if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVICE_GW_ID, out string DefaultGWId)) Request.Id = DefaultGWId;
+
+							m_logger.LogInformation($"GW Add Start. {JsonConvert.SerializeObject(Request)}");
+
+							var Response = await m_serviceProvider.Add(Request, ApiKey.UserId, ApiKey.UserName);
 
 							// 서비스 등록에 실패할 경우
-							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
+							if (Response == null)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. Response is null");
+								return;
+							}
+							else if (Response.Result != EnumResponseResult.Success)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. {Response.Message}");
+								return;
+							}
 							else m_logger.LogInformation($"{Request.Name} Add Success");
 						}
 					}
@@ -294,10 +396,24 @@ namespace PortalSvr.Services
 								ServiceType = EnumServiceType.ksanOSD,
 							};
 
-							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							// 환경변수에 기본 OSD Id가 존재할 경우 사용한다.
+							if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVICE_OSD_ID, out string DefaultOSDId)) Request.Id = DefaultOSDId;
+
+							m_logger.LogInformation($"OSD Add Start. {JsonConvert.SerializeObject(Request)}");
+
+							var Response = await m_serviceProvider.Add(Request, ApiKey.UserId, ApiKey.UserName);
 
 							// 서비스 등록에 실패할 경우
-							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							if (Response == null)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. Response is null");
+								return;
+							}
+							else if (Response.Result != EnumResponseResult.Success)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. {Response.Message}");
+								return;
+							}
 							else m_logger.LogInformation($"{Request.Name} Add Success");
 						}
 					}
@@ -317,10 +433,24 @@ namespace PortalSvr.Services
 								ServiceType = EnumServiceType.ksanLifecycleManager,
 							};
 
-							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							// 환경변수에 기본 Lifecycle Id가 존재할 경우 사용한다.
+							if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVICE_LIFECYCLE_MANAGER_ID, out string DefaultLifecycleId)) Request.Id = DefaultLifecycleId;
+
+							m_logger.LogInformation($"Lifecycle Add Start. {JsonConvert.SerializeObject(Request)}");
+
+							var Response = await m_serviceProvider.Add(Request, ApiKey.UserId, ApiKey.UserName);
 
 							// 서비스 등록에 실패할 경우
-							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							if (Response == null)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. Response is null");
+								return;
+							}
+							else if (Response.Result != EnumResponseResult.Success)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. {Response.Message}");
+								return;
+							}
 							else m_logger.LogInformation($"{Request.Name} Add Success");
 						}
 					}
@@ -340,10 +470,24 @@ namespace PortalSvr.Services
 								ServiceType = EnumServiceType.ksanLogManager,
 							};
 
-							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							// 환경변수에 기본 LogManager Id가 존재할 경우 사용한다.
+							if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVICE_LOG_MANAGER_ID, out string DefaultLogManagerId)) Request.Id = DefaultLogManagerId;
+
+							m_logger.LogInformation($"LogManager Add Start. {JsonConvert.SerializeObject(Request)}");
+
+							var Response = await m_serviceProvider.Add(Request, ApiKey.UserId, ApiKey.UserName);
 
 							// 서비스 등록에 실패할 경우
-							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							if (Response == null)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. Response is null");
+								return;
+							}
+							else if (Response.Result != EnumResponseResult.Success)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. {Response.Message}");
+								return;
+							}
 							else m_logger.LogInformation($"{Request.Name} Add Success");
 						}
 					}
@@ -363,10 +507,24 @@ namespace PortalSvr.Services
 								ServiceType = EnumServiceType.ksanReplicationManager,
 							};
 
-							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							// 환경변수에 기본 Replication Id가 존재할 경우 사용한다.
+							if (EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_SERVICE_REPLICATION_MANAGER_ID, out string DefaultReplicationId)) Request.Id = DefaultReplicationId;
+
+							m_logger.LogInformation($"Replication Add Start. {JsonConvert.SerializeObject(Request)}");
+
+							var Response = await m_serviceProvider.Add(Request, ApiKey.UserId, ApiKey.UserName);
 
 							// 서비스 등록에 실패할 경우
-							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							if (Response == null)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. Response is null");
+								return;
+							}
+							else if (Response.Result != EnumResponseResult.Success)
+							{
+								m_logger.LogError($"{Request.Name} Add Failure. {Response.Message}");
+								return;
+							}
 							else m_logger.LogInformation($"{Request.Name} Add Success");
 						}
 					}

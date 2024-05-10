@@ -99,14 +99,14 @@ namespace PortalProvider
 		private NNApplicationUser m_loginUser;
 
 		/// <summary>로그인 사용자 아이디</summary>
-		public Guid LoginUserId
+		public Guid? LoginUserId
 		{
 			get
 			{
-				if (this.LoginUser != null)
-					return this.LoginUser.Id;
+				if (LoginUser != null)
+					return LoginUser.Id;
 				else
-					return Guid.Empty;
+					return null;
 			}
 		}
 
@@ -115,8 +115,8 @@ namespace PortalProvider
 		{
 			get
 			{
-				if (this.LoginUser != null)
-					return this.LoginUser.Name;
+				if (LoginUser != null)
+					return LoginUser.Name;
 				else
 					return "";
 			}
@@ -144,7 +144,7 @@ namespace PortalProvider
 			if (m_userManager != null)
 			{
 				// 로그인한 사용자의 역할을 가져온다.
-				var Roles = await m_userManager.GetRolesAsync(this.LoginUser);
+				var Roles = await m_userManager.GetRolesAsync(LoginUser);
 
 				if (Roles != null && Roles.Count > 0)
 					Result.AddRange(Roles);
@@ -189,25 +189,19 @@ namespace PortalProvider
 		/// <param name="OrderDirections">정렬 필드 목록</param>
 		protected void InitOrderFields(ref List<string> OrderFields, ref List<string> OrderDirections)
 		{
-			if (OrderFields == null) OrderFields = new List<string>();
-			if (OrderDirections == null) OrderDirections = new List<string>();
+			OrderFields ??= new List<string>();
+			OrderDirections ??= new List<string>();
 
 			// 정렬 필드가 지정되지 않은 경우, 기본 정렬 필드 설정
-			if (OrderFields.Count == 0)
+			if (OrderFields.Count == 0 && DefaultOrderFields.Count > 0)
 			{
-				if (DefaultOrderFields.Count > 0)
-				{
-					OrderFields.AddRange(DefaultOrderFields);
-					OrderDirections.Clear();
-				}
+				OrderFields.AddRange(DefaultOrderFields);
+				OrderDirections.Clear();
 			}
 
 			// 정렬방향목록이 지정되지 않은 경우, 기본 정렬방향목록 설정
-			if (OrderDirections.Count == 0)
-			{
-				if (DefaultOrderDirections.Count > 0 && OrderFields != null && OrderFields.TrueForAll(i => DefaultOrderFields.Contains(i)))
-					OrderDirections.AddRange(DefaultOrderDirections);
-			}
+			if (OrderDirections.Count == 0 && DefaultOrderDirections.Count > 0 && OrderFields.TrueForAll(i => DefaultOrderFields.Contains(i)))
+				OrderDirections.AddRange(DefaultOrderDirections);
 		}
 
 		/// <summary>RPC로 Message Queue를 전송한다.</summary>
@@ -221,29 +215,27 @@ namespace PortalProvider
 
 			try
 			{
-				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
+				using var ServiceScope = m_serviceScopeFactory.CreateScope();
+				// Rabbit MQ RPC 객체를 생성한다.
+				var RabbitMQRpc = ServiceScope.ServiceProvider.GetService<IRabbitMQRpc>();
+				// Rabbit MQ RPC 객체 생성에 실패한 경우
+				if (RabbitMQRpc == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
+
+				// 디스크가 이미 마운트되어 있는지 확인 요청 전송
+				var Response = RabbitMQRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
+
+				// 에러인 경우
+				if (Response.Result == EnumResponseResult.Error) Result.CopyValueFrom(Response);
+				// 에러가 아닌 경우
+				else
 				{
-					// Rabbit MQ RPC 객체를 생성한다.
-					var RabbitMQRpc = ServiceScope.ServiceProvider.GetService<IRabbitMQRpc>();
-					// Rabbit MQ RPC 객체 생성에 실패한 경우
-					if (RabbitMQRpc == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
-
-					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
-					var Response = RabbitMQRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
-
-					// 에러인 경우
-					if (Response.Result == EnumResponseResult.Error) Result.CopyValueFrom(Response);
-					// 에러가 아닌 경우
-					else
-					{
-						// 결과 데이터를 객체로 변환
-						ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(Response.Data);
-						Result.CopyValueFrom(responseData);
-					}
-
-					RabbitMQRpc.Close();
+					// 결과 데이터를 객체로 변환
+					ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(Response.Data);
+					Result.CopyValueFrom(responseData);
 				}
+
+				RabbitMQRpc.Close();
 			}
 			catch (Exception ex)
 			{
@@ -268,30 +260,28 @@ namespace PortalProvider
 
 			try
 			{
-				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
+				using var ServiceScope = m_serviceScopeFactory.CreateScope();
+				// Rabbit MQ RPC 객체를 생성한다.
+				var RabbitMQRpc = ServiceScope.ServiceProvider.GetService<IRabbitMQRpc>();
+				// Rabbit MQ RPC 객체 생성에 실패한 경우
+				if (RabbitMQRpc == null)
+					return new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
+
+				// 요청 전달
+				var Response = RabbitMQRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
+
+				// 에러인 경우
+				if (Response.Result == EnumResponseResult.Error)
+					Result.CopyValueFrom(Response);
+				// 에러가 아닌 경우
+				else
 				{
-					// Rabbit MQ RPC 객체를 생성한다.
-					var RabbitMQRpc = ServiceScope.ServiceProvider.GetService<IRabbitMQRpc>();
-					// Rabbit MQ RPC 객체 생성에 실패한 경우
-					if (RabbitMQRpc == null)
-						return new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
-
-					// 요청 전달
-					var Response = RabbitMQRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
-
-					// 에러인 경우
-					if (Response.Result == EnumResponseResult.Error)
-						Result.CopyValueFrom(Response);
-					// 에러가 아닌 경우
-					else
-					{
-						// 결과 데이터를 객체로 변환
-						var responseData = JsonConvert.DeserializeObject<ResponseData<U>>(Response.Data);
-						Result.CopyValueFrom(responseData);
-					}
-
-					RabbitMQRpc.Close();
+					// 결과 데이터를 객체로 변환
+					var responseData = JsonConvert.DeserializeObject<ResponseData<U>>(Response.Data);
+					Result.CopyValueFrom(responseData);
 				}
+
+				RabbitMQRpc.Close();
 			}
 			catch (Exception ex)
 			{
@@ -315,18 +305,16 @@ namespace PortalProvider
 			try
 			{
 				// DI 객체를 생성한다.
-				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
-				{
-					// Rabbit MQ Sender 객체를 생성한다.
-					var RabbitMQSender = ServiceScope.ServiceProvider.GetService<IRabbitMQSender>();
-					// Rabbit MQ Sender 객체 생성에 실패한 경우
-					if (RabbitMQSender == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
+				using var ServiceScope = m_serviceScopeFactory.CreateScope();
+				// Rabbit MQ Sender 객체를 생성한다.
+				var RabbitMQSender = ServiceScope.ServiceProvider.GetService<IRabbitMQSender>();
+				// Rabbit MQ Sender 객체 생성에 실패한 경우
+				if (RabbitMQSender == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
-					// 추가된 디스크 정보 전송
-					Result = RabbitMQSender.Send(RoutingKey, Request);
-					RabbitMQSender.Close();
-				}
+				// 추가된 디스크 정보 전송
+				Result = RabbitMQSender.Send(RoutingKey, Request);
+				RabbitMQSender.Close();
 			}
 			catch (Exception ex)
 			{

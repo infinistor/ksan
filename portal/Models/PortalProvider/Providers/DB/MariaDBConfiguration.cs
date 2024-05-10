@@ -17,6 +17,6 @@ namespace PortalProvider.Providers.DB
 		public bool Pooling { get; set; } = true;
 		public int MaxPoolSize { get; set; } = 100;
 
-		public string GetConnectionMariaDBString() => $"Server={Host};Port={Port};Database={Name};Uid={User};Password={Password};CharSet={CharSet};Pooling={Pooling};Max Pool Size={MaxPoolSize};";//TLS Version=TLS 1.0;";
+		public string GetConnectionMariaDBString() => $"Server={Host};Port={Port};Database={Name};Uid={User};Password={Password};CharSet={CharSet};Pooling={Pooling};Max Pool Size={MaxPoolSize};";
 	}
 }

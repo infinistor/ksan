@@ -25,13 +25,6 @@ namespace PortalProviderInterface
 		/// <returns>Ksan 사용자 등록 결과</returns>
 		Task<ResponseData<ResponseKsanUser>> Add(RequestKsanUser Request);
 
-		/// <summary>Ksan 사용자를 추가한다.</summary>
-		/// <param name="Name">Ksan 사용자 이름</param>
-		/// <param name="AccessKey">엑세스키</param>
-		/// <param name="SecretKey">시크릿키</param>
-		/// <returns>Ksan 사용자 등록 결과</returns>
-		Task<ResponseData<ResponseKsanUser>> Add(string Name, string AccessKey, string SecretKey);
-
 		/// <summary>Ksan 사용자를 수정한다.</summary>
 		/// <param name="Id">Ksan 사용자 식별자</param>
 		/// <param name="Request">Ksan 사용자 정보</param>
@@ -63,7 +56,7 @@ namespace PortalProviderInterface
 		/// <returns>Ksan 사용자 목록</returns>
 		Task<ResponseList<ResponseKsanUser>> GetUsers(int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = "");
+			List<string> SearchFields = null, string SearchKeyword = null);
 
 		/// <summary>사용자 이름 중복 여부를 검사한다.</summary>
 		/// <param name="UserName">사용자 이름</param>

@@ -20,6 +20,9 @@ namespace PortalData.Responses.Servers
 		/// <summary>서버 아이디</summary>
 		public string Id { get; set; }
 
+		/// <summary>서버 호스트명</summary>
+		public string HostName { get; set; }
+
 		/// <summary>서버명</summary>
 		public string Name { get; set; }
 

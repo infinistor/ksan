@@ -55,16 +55,16 @@ namespace PortalSvr.Services
 
 
 		/// <summary> 서버 감시 시작 </summary>
-		public Task StartAsync(System.Threading.CancellationToken cancellationToken)
+		public Task StartAsync(CancellationToken cancellationToken)
 		{
 
 			m_logger.LogInformation("Server Watcher Start");
-			m_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+			m_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
 			return Task.CompletedTask;
 		}
 
 		/// <summary> 서버 감시 정지 </summary>
-		public Task StopAsync(System.Threading.CancellationToken cancellationToken)
+		public Task StopAsync(CancellationToken cancellationToken)
 		{
 			m_logger.LogInformation("Server Watcher Stop");
 			m_timer.Change(Timeout.Infinite, 0);
@@ -81,40 +81,45 @@ namespace PortalSvr.Services
 		{
 			try
 			{
-				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
-				{
-					var m_serverProvider = ServiceScope.ServiceProvider.GetService<IServerProvider>();
-					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
-					var m_apiKeyProvider = ServiceScope.ServiceProvider.GetService<IApiKeyProvider>();
+				// 서비스 스코프를 생성한다.
+				using var ServiceScope = m_serviceScopeFactory.CreateScope();
+				var m_serverProvider = ServiceScope.ServiceProvider.GetService<IServerProvider>();
+				var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
+				var m_apiKeyProvider = ServiceScope.ServiceProvider.GetService<IApiKeyProvider>();
 
-					var ApiKey = await m_apiKeyProvider.GetMainApiKey();
+				var ApiKey = await m_apiKeyProvider.GetMainApiKey();
 
-					// 서버의 갱신 임계값을 가져온다.
-					var Threshold = await m_serverProvider.GetThreshold();
+				// 서버의 갱신 임계값을 가져온다.
+				var Threshold = await m_serverProvider.GetThreshold();
 
-					// 타임아웃 값을 계산한다
-					var Timeout = DateTime.Now.AddMilliseconds(-Threshold.Data);
+				// 타임아웃 값을 계산한다
+				var Timeout = DateTime.Now.AddMilliseconds(-Threshold.Data);
 
-					//온라인 상태인 서버 목록을 가져온다.
-					var Servers = await m_serverProvider.GetList(SearchState: EnumServerState.Online);
-
+				//온라인 상태인 서버 목록을 가져온다.
+				var Servers = await m_serverProvider.GetList(SearchState: EnumServerState.Online);
+				// 서버 목록을 불러왔을 경우 각 서버의 상태를 확인한다.
+				if (Servers.Data != null && Servers.Data.Items != null)
 					foreach (var Server in Servers.Data.Items)
 					{
 						// 서버의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
 						if (Server.ModDate < Timeout)
-							await m_serverProvider.UpdateState(Server.Id, EnumServerState.Timeout, ApiKey.UserId.ToString(), ApiKey.UserName);
+							await m_serverProvider.UpdateState(Server.Id, EnumServerState.Timeout, ApiKey.UserId, ApiKey.UserName);
 					}
 
-					// 온라인 상태인 서비스 목록을 가져온다.
-					var Services = await m_serviceProvider.GetList(SearchState: EnumServiceState.Online);
-
+				// 온라인 상태인 서비스 목록을 가져온다.
+				var Services = await m_serviceProvider.GetList(SearchState: EnumServiceState.Online);
+				// 서비스 목록을 불러왔을 경우 각 서비스의 상태를 확인한다.
+				if (Services.Data != null && Services.Data.Items != null)
 					foreach (var Service in Services.Data.Items)
 					{
+						// 자기자신의 서비스는 제외한다.
+						if (Service.ServiceType == EnumServiceType.ksanApiPortal)
+							continue;
+
 						// 서비스의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
 						if (Service.ModDate < Timeout)
-							await m_serviceProvider.UpdateState(Service.Id, EnumServiceState.Timeout, ApiKey.UserId.ToString(), ApiKey.UserName);
+							await m_serviceProvider.UpdateState(Service.Id, EnumServiceState.Timeout, ApiKey.UserId, ApiKey.UserName);
 					}
-				}
 			}
 			catch (Exception ex)
 			{

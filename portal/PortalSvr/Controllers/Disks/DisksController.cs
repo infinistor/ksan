@@ -107,12 +107,23 @@ namespace PortalSvr.Controllers.Disks
 			return Json(await m_dataProvider.UpdateUsage(Request));
 		}
 
+		/// <summary>디스크 삭제 모드 수정</summary>
+		/// <param name="Id">디스크 아이디 / 이름</param>
+		/// <param name="DiskDeleting">디스크 삭제 모드(True = 삭제, False = 해제)</param>
+		/// <returns>디스크 삭제 모드 수정 결과 객체</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("{Id}/Deleting/{DiskDeleting}")]
+		public async Task<ActionResult> UpdateDeleteMode([FromRoute] string Id, [FromRoute] bool DiskDeleting)
+		{
+			return Json(await m_dataProvider.UpdateDeleteMode(Id, DiskDeleting));
+		}
+
 		/// <summary>디스크 정보를 삭제한다.</summary>
 		/// <param name="Id">디스크 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpDelete("{Id}")]
-		public async Task<ActionResult> Remove( [FromRoute] string Id)
+		public async Task<ActionResult> Remove([FromRoute] string Id)
 		{
 			return Json(await m_dataProvider.Remove(Id));
 		}
@@ -133,7 +144,7 @@ namespace PortalSvr.Controllers.Disks
 			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetList(
@@ -162,7 +173,7 @@ namespace PortalSvr.Controllers.Disks
 			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetList(

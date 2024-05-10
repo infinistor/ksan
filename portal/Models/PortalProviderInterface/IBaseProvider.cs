@@ -24,7 +24,7 @@ namespace PortalProviderInterface
 		NNApplicationUser LoginUser { get; }
 
 		/// <summary>로그인 사용자 아이디</summary>
-		Guid LoginUserId { get; }
+		Guid? LoginUserId { get; }
 
 		/// <summary>로그인 사용자명</summary>
 		string LoginUserName { get; }

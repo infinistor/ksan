@@ -55,7 +55,7 @@ namespace PortalProviderInterface
 		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
 		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		Task<ResponseList<ResponseClaim>> GetRoleClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "");
+		Task<ResponseList<ResponseClaim>> GetRoleClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = null);
 
 		/// <summary>특정 역할에 대한 사용자 목록을 가져온다.</summary>
 		/// <param name="Id">역할 아이디</param>
@@ -63,7 +63,7 @@ namespace PortalProviderInterface
 		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 20)</param>
 		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		Task<ResponseList<ResponseUser>> GetRoleUsers(string Id, int Skip = 0, int CountPerPage = 100, string SearchKeyword = "");
+		Task<ResponseList<ResponseUser>> GetRoleUsers(string Id, int Skip = 0, int CountPerPage = 100, string SearchKeyword = null);
 
 		/// <summary>역할에 사용자를 추가한다.</summary>
 		/// <param name="RoleId">역할 아이디</param>

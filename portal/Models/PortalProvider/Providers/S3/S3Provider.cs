@@ -48,12 +48,41 @@ namespace PortalProvider.Providers.S3
 		{
 		}
 
+		/// <summary>버킷에 로깅을 설정한다.</summary>
+		/// <param name="Request">버킷 로깅 정보 요청 객체</param>
+		/// <returns>설정 성공 여부</returns>
+		public async Task<ResponseData> SetBucketLogging(RequestS3BucketLogging Request)
+		{
+			var Result = new ResponseData();
+
+			try
+			{
+				// 요청이 유효하지 않은 경우
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// TODO: 버킷 로깅 설정
+				Result.Message = "버킷에 로깅을 설정하였습니다.";
+				Result.Result = EnumResponseResult.Success;
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
 		/// <summary>접근 아이피 주소를 등록한다.</summary>
 		/// <param name="Request">접근 아이피 주소 정보 요청 객체</param>
 		/// <returns>등록 성공 여부 및 정보 반환</returns>
 		public async Task<ResponseData<ResponseS3AccessIp>> AddAccessIp(RequestS3AccessIp Request)
 		{
-			ResponseData<ResponseS3AccessIp> result = new ResponseData<ResponseS3AccessIp>();
+			var Result = new ResponseData<ResponseS3AccessIp>();
 
 			try
 			{
@@ -65,119 +94,111 @@ namespace PortalProvider.Providers.S3
 				if (!IpAddressValue.TryParse(Request.IpAddress, out IpAddressValue ipAddressValue))
 					return new ResponseData<ResponseS3AccessIp>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_IP_ADDRESS, Resource.EM_COMMON__INVALID_IP_ADDRESS);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					var Item = new S3AccessIp()
 					{
-						var Item = new S3AccessIp()
-						{
-							AddressId = Guid.NewGuid().ToString(),
-							UserId = Request.UserId,
-							BucketName = Request.BucketName,
-							StartIpNo = ipAddressValue.Min,
-							EndIpNo = ipAddressValue.Max,
-							IpAddress = Request.IpAddress,
-							RegDate = DateTime.Now,
-							RegId = LoginUserId,
-							RegName = LoginUserName,
-						};
+						AddressId = Guid.NewGuid().ToString(),
+						UserId = Request.UserId,
+						BucketName = Request.BucketName,
+						StartIpNo = ipAddressValue.Min,
+						EndIpNo = ipAddressValue.Max,
+						IpAddress = Request.IpAddress,
+						ModId = LoginUserId,
+						ModName = LoginUserName,
+					};
 
-						// 접근 아이피 주소 추가
-						await m_dbContext.S3AccessIps.AddAsync(Item);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 접근 아이피 주소 추가
+					await m_dbContext.S3AccessIps.AddAsync(Item);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						//KJW Add
-						result.Data.CopyValueFrom(Item);
-						result.Result = EnumResponseResult.Success;
+					//KJW Add
+					Result.Data.CopyValueFrom(Item);
+					Result.Result = EnumResponseResult.Success;
 
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>접근 아이피 주소를 수정한다.</summary>
-		/// <param name="addressId">수정할 주소 아이디</param>
-		/// <param name="request">접근 아이피 주소 정보 요청 객체</param>
+		/// <param name="AddressId">수정할 주소 아이디</param>
+		/// <param name="Request">접근 아이피 주소 정보 요청 객체</param>
 		/// <returns>수정 성공 여부</returns>
-		public async Task<ResponseData> UpdateAccessIp(string addressId, RequestS3AccessIp request)
+		public async Task<ResponseData> UpdateAccessIp(string AddressId, RequestS3AccessIp Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 
 			try
 			{
 				// 주소 아이디가 유효하지 않은 경우
-				if (addressId.IsEmpty())
+				if (AddressId.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 요청한 아이피 주소가 유효하지 않은 경우
-				if (!IpAddressValue.TryParse(request.IpAddress, out IpAddressValue ipAddressValue))
+				if (!IpAddressValue.TryParse(Request.IpAddress, out IpAddressValue ipAddressValue))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_IP_ADDRESS, Resource.EM_COMMON__INVALID_IP_ADDRESS);
 
 				// 해당 접근 아이피 주소 객체를 가져온다.
 				var s3AccessIp = await m_dbContext.S3AccessIps
-					.Where(i => i.AddressId == addressId)
+					.Where(i => i.AddressId == AddressId)
 					.FirstOrDefaultAsync<dynamic, S3AccessIp>();
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (s3AccessIp == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				string oldUserId = s3AccessIp.UserId;
-
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 접근 아이피 주소 수정
-						s3AccessIp.UserId = request.UserId;
-						s3AccessIp.BucketName = request.BucketName;
-						s3AccessIp.StartIpNo = ipAddressValue.Min;
-						s3AccessIp.EndIpNo = ipAddressValue.Max;
-						s3AccessIp.IpAddress = request.IpAddress;
-						s3AccessIp.RegDate = DateTime.Now;
-						s3AccessIp.RegId = LoginUserId;
-						s3AccessIp.RegName = LoginUserName;
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 접근 아이피 주소 수정
+					s3AccessIp.UserId = Request.UserId;
+					s3AccessIp.BucketName = Request.BucketName;
+					s3AccessIp.StartIpNo = ipAddressValue.Min;
+					s3AccessIp.EndIpNo = ipAddressValue.Max;
+					s3AccessIp.IpAddress = Request.IpAddress;
+					s3AccessIp.ModId = LoginUserId;
+					s3AccessIp.ModName = LoginUserName;
+					if (m_dbContext.HasChanges())
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 
 			}
@@ -185,67 +206,65 @@ namespace PortalProvider.Providers.S3
 			{
 				NNException.Log(ex);
 
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>접근 아이피 주소를 삭제한다.</summary>
-		/// <param name="addressId">삭제할 주소 아이디</param>
+		/// <param name="AddressId">삭제할 주소 아이디</param>
 		/// <returns>삭제 성공 여부</returns>
-		public async Task<ResponseData> RemoveAccessIp(string addressId)
+		public async Task<ResponseData> RemoveAccessIp(string AddressId)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 
 			try
 			{
 				// 주소 아이디가 유효하지 않은 경우
-				if (addressId.IsEmpty())
+				if (AddressId.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 접근 아이피 주소 객체를 가져온다.
-				var s3AccessIp = await m_dbContext.S3AccessIps.Where(i => i.AddressId == addressId).FirstOrDefaultAsync<dynamic, S3AccessIp>();
+				var s3AccessIp = await m_dbContext.S3AccessIps.Where(i => i.AddressId == AddressId).FirstOrDefaultAsync<dynamic, S3AccessIp>();
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (s3AccessIp == null)
 					return new ResponseData(EnumResponseResult.Success);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 접근 아이피 주소 삭제
-						m_dbContext.S3AccessIps.Remove(s3AccessIp);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 접근 아이피 주소 삭제
+					m_dbContext.S3AccessIps.Remove(s3AccessIp);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>접근 아이피 주소를 삭제한다.</summary>
@@ -254,44 +273,42 @@ namespace PortalProvider.Providers.S3
 		/// <returns>삭제 성공 여부</returns>
 		public async Task<ResponseData> RemoveAccessIp(string UserId, string BucketName)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 
 			try
 			{
 				var S3AccessIps = await m_dbContext.S3AccessIps.AsNoTracking()
-					.Where(i => (!UserId.IsEmpty() ? i.UserId == UserId : true))
-					.Where(i => (!BucketName.IsEmpty() ? i.BucketName == BucketName : true))
+					.Where(i => UserId.IsEmpty() || i.UserId == UserId)
+					.Where(i => BucketName.IsEmpty() || i.BucketName == BucketName)
 					.CreateListAsync<S3AccessIp>();
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (S3AccessIps.Items == null || S3AccessIps.Items.Count == 0)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 접근 아이피 주소 삭제
+					foreach (var Item in S3AccessIps.Items)
 					{
-						// 접근 아이피 주소 삭제
-						foreach (var Item in S3AccessIps.Items)
-						{
-							m_dbContext.S3AccessIps.Remove(Item);
+						m_dbContext.S3AccessIps.Remove(Item);
 
-						}
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						await Transaction.CommitAsync();
-
-						result.Result = EnumResponseResult.Success;
 					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						NNException.Log(ex);
+					await Transaction.CommitAsync();
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 
 			}
@@ -299,67 +316,67 @@ namespace PortalProvider.Providers.S3
 			{
 				NNException.Log(ex);
 
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>접근 아이피 주소 상세 정보를 가져온다.</summary>
-		/// <param name="addressId">주소 아이디</param>
+		/// <param name="AddressId">주소 아이디</param>
 		/// <returns>접근 아이피 주소 정보</returns>
-		public async Task<ResponseData<ResponseS3AccessIp>> GetAccessIp(string addressId)
+		public async Task<ResponseData<ResponseS3AccessIp>> GetAccessIp(string AddressId)
 		{
-			ResponseData<ResponseS3AccessIp> result = new ResponseData<ResponseS3AccessIp>();
+			var Result = new ResponseData<ResponseS3AccessIp>();
 
 			try
 			{
 				// 주소 아이디가 유효하지 않은 경우
-				if (addressId.IsEmpty())
+				if (AddressId.IsEmpty())
 					return new ResponseData<ResponseS3AccessIp>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 접근 아이피 주소 객체를 가져온다.
-				result.Data = await m_dbContext.S3AccessIps.AsNoTracking()
-					.Where(i => i.AddressId == addressId)
+				Result.Data = await m_dbContext.S3AccessIps.AsNoTracking()
+					.Where(i => i.AddressId == AddressId)
 					.FirstOrDefaultAsync<S3AccessIp, ResponseS3AccessIp>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (result.Data == null)
+				if (Result.Data == null)
 					return new ResponseData<ResponseS3AccessIp>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				IPAddress ipAddress = ((uint)result.Data.StartIpNo).ToIPAddress();
+				IPAddress ipAddress = ((uint)Result.Data.StartIpNo).ToIPAddress();
 				if (ipAddress != null)
-					result.Data.StartIpAddress = ipAddress.ToString();
-				ipAddress = ((uint)result.Data.EndIpNo).ToIPAddress();
+					Result.Data.StartIpAddress = ipAddress.ToString();
+				ipAddress = ((uint)Result.Data.EndIpNo).ToIPAddress();
 				if (ipAddress != null)
-					result.Data.EndIpAddress = ipAddress.ToString();
+					Result.Data.EndIpAddress = ipAddress.ToString();
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>접근 아이피 주소 목록을 가져온다.</summary>
 		/// <param name="loginUserId">로그인 사용자 아이디 객체</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="UserId">유저 아이디</param>
 		/// <param name="BucketName">버킷 이름</param>
 		/// <returns>S3 사용현황 목록 객체</returns>
-		public async Task<ResponseList<ResponseS3AccessIp>> GetAccessIps(int skip = 0, int CountPerPage = 100, string UserId = null, string BucketName = null)
+		public async Task<ResponseList<ResponseS3AccessIp>> GetAccessIps(int Skip = 0, int CountPerPage = 100, string UserId = null, string BucketName = null)
 		{
-			ResponseList<ResponseS3AccessIp> result = new ResponseList<ResponseS3AccessIp>();
+			var result = new ResponseList<ResponseS3AccessIp>();
 
 			try
 			{
@@ -369,9 +386,9 @@ namespace PortalProvider.Providers.S3
 
 				// 로그 목록을 가져온다.
 				result.Data = await m_dbContext.S3AccessIps.AsNoTracking()
-					.Where(i => (!UserId.IsEmpty() ? i.UserId == UserId : true))
-					.Where(i => (!BucketName.IsEmpty() ? i.BucketName == BucketName : true))
-					.CreateListAsync<S3AccessIp, ResponseS3AccessIp>(skip, CountPerPage);
+					.Where(i => UserId.IsEmpty() || i.UserId == UserId)
+					.Where(i => BucketName.IsEmpty() || i.BucketName == BucketName)
+					.CreateListAsync<S3AccessIp, ResponseS3AccessIp>(Skip, CountPerPage);
 
 				// 모든 접근 아이피에 대해서 처리
 				foreach (ResponseS3AccessIp accessIp in result.Data.Items)

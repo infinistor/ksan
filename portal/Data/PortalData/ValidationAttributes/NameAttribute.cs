@@ -19,7 +19,7 @@ namespace PortalData.ValidationAttributes
 	public class NameAttribute : ValidationAttribute
 	{
 		/// <summary>아이디 검사용 정규식</summary>
-		protected static readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z-_]{1,}$");
+		protected static readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z-_.]{1,}$");
 
 		/// <summary>유효한지 여부 검사</summary>
 		/// <param name="value">검사할 값</param>
@@ -27,12 +27,7 @@ namespace PortalData.ValidationAttributes
 		public override bool IsValid(object value)
 		{
 			// 값이 문자열인 경우
-			if (value != null && value is string)
-			{
-				var item = (string)value;
-				if (IdChecker.IsMatch(item)) return true;
-			}
-
+			if (value is string item) return IdChecker.IsMatch(item);
 			return false;
 		}
 	}

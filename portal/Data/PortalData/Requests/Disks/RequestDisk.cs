@@ -24,7 +24,10 @@ namespace PortalData.Requests.Disks
 		public string ServerId { get; set; }
 
 		/// <summary>디스크 풀 아이디</summary>
-		public string DiskPoolId { get; set; }
+		public string DiskPoolId { get; set; } = "";
+
+		/// <summary>디스크 아이디</summary>
+		public string Id { get; set; } = "";
 
 		/// <summary>디스크 이름</summary>
 		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
@@ -43,24 +46,27 @@ namespace PortalData.Requests.Disks
 		public EnumDiskState State { get; set; } = EnumDiskState.Disable;
 
 		/// <summary>전체 inode 수</summary>
-		public decimal TotalInode { get; set; }
+		public decimal TotalInode { get; set; } = 0;
 
 		/// <summary>예약/시스템 inode 수</summary>
-		public decimal ReservedInode { get; set; }
+		public decimal ReservedInode { get; set; } = 0;
 
 		/// <summary>사용된 inode 수</summary>
-		public decimal UsedInode { get; set; }
+		public decimal UsedInode { get; set; } = 0;
 
 		/// <summary>전체 크기</summary>
-		public decimal TotalSize { get; set; }
+		public decimal TotalSize { get; set; } = 0;
 
 		/// <summary>예약/시스템 크기</summary>
-		public decimal ReservedSize { get; set; }
+		public decimal ReservedSize { get; set; } = 0;
 
 		/// <summary>사용된 크기</summary>
-		public decimal UsedSize { get; set; }
+		public decimal UsedSize { get; set; } = 0;
 
 		/// <summary>디스크 읽기/쓰기 모드</summary>
 		public EnumDiskRwMode RwMode { get; set; } = EnumDiskRwMode.ReadWrite;
+
+		/// <summary> Check </summary>
+		public bool Check { get; set; } = true;
 	}
 }

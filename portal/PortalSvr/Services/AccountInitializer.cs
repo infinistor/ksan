@@ -65,7 +65,7 @@ namespace PortalSvr.Services
 				if (await m_userProvider.UserCount() == 0)
 				{
 					// "admin" 계정을 생성하고, "Supervisor" 역할에 추가한다.
-					await m_userProvider.Add(new RequestUserRegist()
+					await m_userProvider.Add(new RequestUserCreate()
 					{
 						LoginId = "admin",
 						Email = "admin@pspace.co.kr",
@@ -74,18 +74,18 @@ namespace PortalSvr.Services
 						Roles = new List<string>() { PredefinedRoleNames.RoleNameSupervisor }
 					}, "qwe123", "qwe123");
 
-					// "internalservice" 계정을 생성하고, "InternalService" 역할에 추가한다.
+					// "InternalService" 계정을 생성하고, "InternalService" 역할에 추가한다.
 					// 해당 계정으로는 로그인 불가하며, API 키만 사용 가능하다.
-					var Response = await m_userProvider.Add(new RequestUserRegist()
+					var Response = await m_userProvider.Add(new RequestUserCreate()
 					{
-						LoginId = "internalservice",
-						Email = "internalservice@pspace.co.kr",
+						LoginId = "InternalService",
+						Email = "InternalService@pspace.co.kr",
 						Name = "InternalService",
 						Status = EnumUserStatus.Activated,
 						Roles = new List<string>() { PredefinedRoleNames.RoleNameInternalService }
 					}, null, null);
 
-					// "internalservice" 계정 생성에 성공한 경우, API KEY를 생성한다.
+					// "InternalService" 계정 생성에 성공한 경우, API KEY를 생성한다.
 					if (Response.Result == EnumResponseResult.Success)
 					{
 						string APIKey = null;

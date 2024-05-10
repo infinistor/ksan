@@ -26,7 +26,7 @@ namespace PortalSvr.Services
 	public class ApiKeyAuthorize : AuthorizeAttribute, IAuthorizationFilter
 	{
 		/// <summary>API KEY 인증 헤더명</summary>
-		public static string AuthorizationHeaderName = "Authorization";
+		public static readonly string AuthorizationHeaderName = "Authorization";
 
 		/// <summary>권한 확인</summary>
 		/// <param name="context"></param>
@@ -67,7 +67,7 @@ namespace PortalSvr.Services
 						if (UserManager != null && SignInManager != null && ClaimsPrincipalFactory != null)
 						{
 							// API 키에 대한 사용자 정보를 가져온다.
-							var User = UserManager.FindByIdAsync(ResponseApiKey.Data.UserId).Result;
+							var User = UserManager.FindByIdAsync(ResponseApiKey.Data.UserId.ToString()).Result;
 
 							// 로그인 정보를 저장한다. (이번 요청부터 로그인된 상태를 처리하기 하기 위해서)
 							context.HttpContext.User = ClaimsPrincipalFactory.CreateAsync(User).Result;

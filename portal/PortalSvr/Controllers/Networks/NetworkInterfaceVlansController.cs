@@ -106,7 +106,7 @@ namespace PortalSvr.Controllers.Networks
 			[FromRoute] string ServerId, [FromRoute] string InterfaceId
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetList(

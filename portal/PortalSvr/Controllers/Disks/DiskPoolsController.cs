@@ -97,7 +97,7 @@ namespace PortalSvr.Controllers.Disks
 		public async Task<ActionResult> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetList(
@@ -179,7 +179,7 @@ namespace PortalSvr.Controllers.Disks
 		public async Task<ActionResult> GetAvailableDisks(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "")
+			, List<string> SearchFields = null, string SearchKeyword = null)
 		{
 			return Json(await m_dataProvider.GetAvailableDisks(
 				Skip, CountPerPage
@@ -202,7 +202,7 @@ namespace PortalSvr.Controllers.Disks
 			[FromRoute] string Id
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "")
+			, List<string> SearchFields = null, string SearchKeyword = null)
 		{
 			return Json(await m_dataProvider.GetAvailableDisks(
 				Id

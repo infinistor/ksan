@@ -20,6 +20,12 @@ namespace PortalData.Requests.Servers
 	/// <summary>서버 등록/수정 요청 클래스</summary>
 	public class RequestServer : CommonRequestData
 	{
+		/// <summary>서버 아이디</summary>
+		public string Id { get; set; } = "";
+
+		/// <summary> 호스트명</summary>
+		public string HostName { get; set; }
+
 		/// <summary>서버명</summary>
 		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name

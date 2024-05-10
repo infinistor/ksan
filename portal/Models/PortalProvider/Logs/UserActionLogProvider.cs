@@ -46,7 +46,7 @@ namespace PortalProvider.Logs
 		}
 
 		/// <summary>로그인 사용자 아이디</summary>
-		public Guid LoginUserId
+		public Guid? LoginUserId
 		{
 			get
 			{
@@ -117,7 +117,7 @@ namespace PortalProvider.Logs
 			DateTime SearchStartDate, DateTime SearchEndDate,
 			List<EnumLogLevel> Levels,
 			int Skip = 0, int CountPerPage = 100,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Result = new ResponseList<ResponseUserActionLog>();
@@ -135,8 +135,8 @@ namespace PortalProvider.Logs
 							(
 								SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
 								 || (SearchFields.Contains("Email") && i.User.Email.Contains(SearchKeyword))
-								 || (SearchFields.Contains("loginid") && i.User.LoginId.Contains(SearchKeyword))
-								 || (SearchFields.Contains("name") && i.User.Name.Contains(SearchKeyword))
+								 || (SearchFields.Contains("LoginId") && i.User.LoginId.Contains(SearchKeyword))
+								 || (SearchFields.Contains("Name") && i.User.Name.Contains(SearchKeyword))
 								 || (SearchFields.Contains("Code") && i.User.Code.Contains(SearchKeyword))
 								 || (SearchFields.Contains("Message") && i.Message.Contains(SearchKeyword))
 								 || (SearchFields.Contains("ip") && i.IpAddress.Contains(SearchKeyword))
