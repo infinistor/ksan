@@ -77,6 +77,19 @@ namespace PortalProvider.Providers.Accounts
 				if (responseDuplicatedName.Result != EnumResponseResult.Success)
 					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, responseDuplicatedName.Code, responseDuplicatedName.Message);
 
+				// Id를 입력했을 경우
+				var Id = Guid.NewGuid();
+				if (!string.IsNullOrEmpty(Request.Id))
+				{
+					// Guid로 반환 가능한지 확인
+					if (!Guid.TryParse(Request.Id, out Id))
+						return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					// 중복 체크
+					if (await IsExistId(Id))
+						return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DUPLICATED_ID);
+				}
+
 				//이메일 체크
 				string Email = null;
 
@@ -99,7 +112,7 @@ namespace PortalProvider.Providers.Accounts
 				if (Request.StandardDiskPoolId.IsEmpty())
 				{
 					// 기본 디스크 풀 정보를 가져온다.
-					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.DefaultDiskPool == true);
+					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.DefaultDiskPool);
 				}
 				else
 				{
@@ -118,11 +131,11 @@ namespace PortalProvider.Providers.Accounts
 				// 요청이 유효한 경우 Ksan 사용자 객체를 생성한다.
 				var NewUser = new KsanUser
 				{
-					Id = Guid.NewGuid(),
+					Id = Id,
 					Name = Request.Name,
 					Email = Email,
-					AccessKey = CreateAccessKey(),
-					SecretKey = CreateSecretKey(),
+					AccessKey = string.IsNullOrWhiteSpace(Request.AccessKey) ? CreateAccessKey() : Request.AccessKey,
+					SecretKey = string.IsNullOrWhiteSpace(Request.SecretKey) ? CreateSecretKey() : Request.SecretKey,
 				};
 
 				// Ksan 사용자 등록
@@ -130,70 +143,6 @@ namespace PortalProvider.Providers.Accounts
 
 				// 기본 스토리지 클래스 등록
 				var StorageClass = new UserDiskPool { Id = Guid.NewGuid(), UserId = NewUser.Id, DiskPoolId = Exist.Id, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
-				await m_dbContext.UserDiskPools.AddAsync(StorageClass);
-				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-				// 사용자 정보를 조회한다.
-				Result.Data = await GetUser(NewUser.Id);
-				Result.Result = EnumResponseResult.Success;
-
-				// Ksan 사용자 등록 알림
-				SendMq("*.services.gw.user.added", Result.Data);
-			}
-			catch (Exception ex)
-			{
-				NNException.Log(ex);
-
-				Result.Code = Resource.EC_COMMON__EXCEPTION;
-				Result.Message = Resource.EM_COMMON__EXCEPTION;
-			}
-			return Result;
-		}
-
-		/// <summary>Ksan 사용자를 추가한다.</summary>
-		/// <param name="Name">Ksan 사용자 이름</param>
-		/// <param name="AccessKey">엑세스키</param>
-		/// <param name="SecretKey">시크릿키</param>
-		/// <returns>Ksan 사용자 등록 결과</returns>
-		public async Task<ResponseData<ResponseKsanUser>> Add(string Name, string AccessKey, string SecretKey)
-		{
-			var Result = new ResponseData<ResponseKsanUser>();
-
-			try
-			{
-				// 사용자명 유효하지 않을 경우
-				if (Name.IsEmpty() || !IdChecker.IsMatch(Name))
-					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME);
-
-				// 이름 중복 검사
-				var responseDuplicatedName = await CheckUserNameDuplicated(Name);
-
-				// 중복검사 실패시
-				if (responseDuplicatedName.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, responseDuplicatedName.Code, responseDuplicatedName.Message);
-
-				// 디스크풀 정보를 가져온다.
-				DiskPool Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.DefaultDiskPool == true);
-
-				// 해당 정보가 존재하지 않는 경우
-				if (Exist == null)
-					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
-
-				// 요청이 유효한 경우 Ksan 사용자 객체를 생성한다.
-				var NewUser = new KsanUser
-				{
-					Id = Guid.NewGuid(),
-					Name = Name,
-					Email = "",
-					AccessKey = AccessKey.IsEmpty() ? CreateAccessKey() : AccessKey,
-					SecretKey = SecretKey.IsEmpty() ? CreateSecretKey() : SecretKey,
-				};
-
-				// Ksan 사용자 등록
-				await m_dbContext.KsanUsers.AddAsync(NewUser);
-
-				// 기본 스토리지 클래스 등록
-				var StorageClass = new UserDiskPool { UserId = NewUser.Id, DiskPoolId = Exist.Id, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
 				await m_dbContext.UserDiskPools.AddAsync(StorageClass);
 				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
@@ -350,7 +299,7 @@ namespace PortalProvider.Providers.Accounts
 		/// <returns>Ksan 사용자 목록</returns>
 		public async Task<ResponseList<ResponseKsanUser>> GetUsers(int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = "")
+			List<string> SearchFields = null, string SearchKeyword = null)
 		{
 			var Result = new ResponseList<ResponseKsanUser>();
 
@@ -381,9 +330,9 @@ namespace PortalProvider.Providers.Accounts
 				{
 					foreach (var Storage in User.UserDiskPools)
 					{
-						if (Guid.TryParse(Storage.DiskPoolId, out Guid DiksPoolGuid))
+						if (Guid.TryParse(Storage.DiskPoolId, out Guid DiskPoolGuid))
 						{
-							var DiskPool = DiskPools.Where(i => i.Id == DiksPoolGuid).FirstOrDefault();
+							var DiskPool = DiskPools.FirstOrDefault(i => i.Id == DiskPoolGuid);
 							if (DiskPool != null)
 								Storage.DiskPoolName = DiskPool.Name;
 							Storage.StorageClass = Storage.StorageClass.ToUpper();
@@ -1148,16 +1097,16 @@ namespace PortalProvider.Providers.Accounts
 				Result.Data = await m_dbContext.DiskPools.AsNoTracking().OrderBy(i => i.Name).CreateListAsync<dynamic, ResponseDiskPool>();
 
 				// 사용자의 스토리지 클래스 목록을 조회한다.
-				var Items = await m_dbContext.UserDiskPools.AsNoTracking().Where(i => i.UserId == User.Id).CreateListAsync();
+				var UserDiskPools = await m_dbContext.UserDiskPools.AsNoTracking().Where(i => i.UserId == User.Id).CreateListAsync();
 
 				// 사용자의 스토리지 클래스 목록을 제외한 디스크풀 목록을 반환한다.
-				foreach (var Item in Items.Items)
+				foreach (var Item in UserDiskPools.Items)
 				{
 					// 디스크풀 식별자가 지정되어 있을 경우 해당 디스크풀은 같이 반환한다.
 					if (DiskPoolId != null && Item.DiskPoolId.ToString() == DiskPoolId) continue;
 
 					// 사용자의 스토리지 클래스 목록에서 제외한다.
-					var Remove = Result.Data.Items.Where(i => i.Id == Item.DiskPoolId.ToString()).First();
+					var Remove = Result.Data.Items.FirstOrDefault(i => i.Id == Item.DiskPoolId.ToString());
 					if (Remove != null) Result.Data.Items.Remove(Remove);
 				}
 
@@ -1174,9 +1123,26 @@ namespace PortalProvider.Providers.Accounts
 			return Result;
 		}
 
-		/************************************************************************************************************/
-		protected static readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z-_]{1,}$");
-		protected static readonly Regex EmailChecker = new Regex(@"^([0-9a-zA-Z]+)@([0-9a-zA-Z]+)(\.[0-9a-zA-Z]+){1,}$");
+
+		/// <summary> 해당 Id가 존재하는지 여부 </summary>
+		/// <param name="Id">검색할 Id</param>
+		/// <returns>해당 Id가 존재하는지 여부</returns>
+		public async Task<bool> IsExistId(Guid Id)
+		{
+			try
+			{
+				// 해당 Id가 존재하는지 여부를 반환한다.
+				return await m_dbContext.KsanUsers.AsNoTracking().AnyAsync(i => i.Id == Id);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+			return false;
+		}
+
+		protected static readonly Regex IdChecker = new(@"^[0-9a-zA-Z-_]{1,}$");
+		protected static readonly Regex EmailChecker = new(@"^([0-9a-zA-Z]+)@([0-9a-zA-Z]+)(\.[0-9a-zA-Z]+){1,}$");
 		protected static readonly int ACCESS_KEY_LENGTH = 20;
 		protected static readonly int SECRET_KEY_LENGTH = 40;
 		protected static readonly char[] TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();

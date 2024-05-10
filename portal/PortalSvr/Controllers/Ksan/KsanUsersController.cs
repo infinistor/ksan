@@ -66,7 +66,7 @@ namespace PortalSvr.Controllers.Accounts
 		[HttpGet]
 		public async Task<ActionResult> Get(int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetUsers(Skip, CountPerPage, OrderFields, OrderDirections, SearchFields, SearchKeyword));

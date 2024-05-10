@@ -18,6 +18,9 @@ namespace PortalData.Requests.Ksan
 	/// <summary>Ksan 사용자 정보 등록 요청 클래스</summary>
 	public class RequestKsanUser : CommonRequestData
 	{
+		/// <summary>사용자 ID</summary>
+		public string Id { get; set; } = "";
+
 		/// <summary>Ksan 사용자명</summary>
 		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name
@@ -26,6 +29,12 @@ namespace PortalData.Requests.Ksan
 			set => m_name = value.IsEmpty() ? "" : value.Trim();
 		}
 		private string m_name;
+
+		/// <summary>Access Key</summary>
+		public string AccessKey { get; set; } = "";
+
+		/// <summary>Secret Key</summary>
+		public string SecretKey { get; set; } = "";
 
 		/// <summary>이메일 주소</summary>
 		public string Email { get; set; } = "";
