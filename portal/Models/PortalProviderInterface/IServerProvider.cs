@@ -43,14 +43,14 @@ namespace PortalProviderInterface
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(string Id, EnumServerState State, string ModId = "", string ModName = "");
+		Task<ResponseData> UpdateState(string Id, EnumServerState State, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서버 상태 수정</summary>
 		/// <param name="Request">서버 상태 수정 요청 객체</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(RequestServerState Request, string ModId = "", string ModName = "");
+		Task<ResponseData> UpdateState(RequestServerState Request, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서버 사용 정보 수정</summary>
 		/// <param name="Id">서버 아이디 / 이름</param>
@@ -84,11 +84,11 @@ namespace PortalProviderInterface
 			EnumServerState? SearchState = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="SearchState">검색할 서버 상태 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
@@ -97,10 +97,10 @@ namespace PortalProviderInterface
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		Task<ResponseList<ResponseServerDetail>> GetListDetails(
-			EnumServerState? SearchStates = null,
+			EnumServerState? SearchState = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>서버 정보를 가져온다.</summary>

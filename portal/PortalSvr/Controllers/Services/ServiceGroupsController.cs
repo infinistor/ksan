@@ -101,7 +101,7 @@ namespace PortalSvr.Controllers.Services
 		public async Task<ActionResult> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			return Json(await m_dataProvider.GetList(
@@ -157,7 +157,7 @@ namespace PortalSvr.Controllers.Services
 			[FromRoute] EnumServiceType ServiceType
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "")
+			, List<string> SearchFields = null, string SearchKeyword = null)
 		{
 			return Json(await m_dataProvider.GetAvailableServices(
 				ServiceType
@@ -181,7 +181,7 @@ namespace PortalSvr.Controllers.Services
 			[FromRoute] string Id
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "")
+			, List<string> SearchFields = null, string SearchKeyword = null)
 		{
 			return Json(await m_dataProvider.GetAvailableServices(
 				Id

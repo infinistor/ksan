@@ -19,33 +19,33 @@ namespace PortalProviderInterface
 	public interface ISystemConfigLoader
 	{
 		/// <summary>DB에서 설정을 로드한다.</summary>
-		/// <param name="context">DB 컨텍스트</param>
+		/// <param name="Context">DB 컨텍스트</param>
 		/// <returns>로드 결과</returns>
-		bool Load(DbContext context);
+		bool Load(DbContext Context);
 
 		/// <summary>특정 설정 값에 대한 문자열을 가져온다.</summary>
-		/// <param name="key">설정 키</param>
+		/// <param name="Key">설정 키</param>
 		/// <returns>설정 값</returns>
-		string GetValue(string key);
+		string GetValue(string Key);
 
 		/// <summary>특정 설정 값을 T 타입으로 변환하여 반환한다.</summary>
 		/// <typeparam name="T">변환할 타입</typeparam>
-		/// <param name="key">설정 키</param>
+		/// <param name="Key">설정 키</param>
 		/// <returns>설정 값</returns>
-		T GetValue<T>(string key);
+		T GetValue<T>(string Key);
 
 		/// <summary>특정 설정을 가져온다.</summary>
-		/// <param name="key">설정 키</param>
+		/// <param name="Key">설정 키</param>
 		/// <returns>해당 설정 데이터</returns>
-		ResponseData<ResponseConfig> Get(string key);
+		ResponseData<ResponseConfig> Get(string Key);
 
 		/// <summary>전체 설정을 가져온다.</summary>
 		/// <returns>설정 목록</returns>
 		ResponseList<ResponseConfig> Get();
 
 		/// <summary>주어진 문자열로 시작하는 키를 가지는 설정 목록을 가져온다.</summary>
-		/// <param name="keyStartWith">키 시작 문자열</param>
+		/// <param name="KeyStartWith">키 시작 문자열</param>
 		/// <returns>설정 목록</returns>
-		ResponseList<ResponseConfig> GetStartsWith(string keyStartWith);
+		ResponseList<ResponseConfig> GetStartsWith(string KeyStartWith);
 	}
 }

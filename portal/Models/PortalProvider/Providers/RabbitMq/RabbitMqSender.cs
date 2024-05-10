@@ -92,7 +92,6 @@ namespace PortalProvider.Providers.RabbitMQ
 		public ResponseData Send(string RoutingKey, object SendingObject)
 		{
 			var Result = new ResponseData();
-
 			try
 			{
 				// 객체가 유효하지 않은 경우

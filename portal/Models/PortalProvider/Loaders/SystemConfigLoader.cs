@@ -11,7 +11,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using PortalData;
 using PortalData.Configs;
 using PortalData.Responses.Common;
@@ -30,7 +29,7 @@ namespace PortalProvider.Loaders
 	public class SystemConfigLoader : ISystemConfigLoader
 	{
 		/// <summary>설정 목록</summary>
-		private List<Config> m_configs = new List<Config>();
+		private List<Config> m_configs = new();
 
 		/// <summary>생성자</summary>
 		public SystemConfigLoader()
@@ -84,16 +83,16 @@ namespace PortalProvider.Loaders
 		}
 
 		/// <summary>특정 설정 값에 대한 문자열을 가져온다.</summary>
-		/// <param name="key">설정 키</param>
+		/// <param name="Key">설정 키</param>
 		/// <returns>설정 값</returns>
-		public string GetValue(string key)
+		public string GetValue(string Key)
 		{
 			string Result = "";
 			ResponseData<ResponseConfig> Config;
 			try
 			{
 				// 해당 설정을 가져온다.
-				Config = this.Get(key);
+				Config = this.Get(Key);
 
 				// 설정을 가져오는데 성공한 경우
 				if (Config.Result == EnumResponseResult.Success)
@@ -108,16 +107,16 @@ namespace PortalProvider.Loaders
 
 		/// <summary>특정 설정 값을 T 타입으로 변환하여 반환한다.</summary>
 		/// <typeparam name="T">변환할 타입</typeparam>
-		/// <param name="key">설정 키</param>
+		/// <param name="Key">설정 키</param>
 		/// <returns>설정 값</returns>
-		public T GetValue<T>(string key)
+		public T GetValue<T>(string Key)
 		{
 			T Result = default(T);
 			ResponseData<ResponseConfig> Config;
 			try
 			{
 				// 해당 설정을 가져온다.
-				Config = this.Get(key);
+				Config = this.Get(Key);
 
 				// 설정을 가져오는데 성공한 경우
 				if (Config.Result == EnumResponseResult.Success)
@@ -150,7 +149,7 @@ namespace PortalProvider.Loaders
 					lock (m_configs)
 					{
 						// 해당 설정을 가져온다.
-						var config = m_configs.Where(i => i.Key == Key).FirstOrDefault();
+						var config = m_configs.FirstOrDefault(i => i.Key == Key);
 						if (config != null)
 						{
 							Item = new ResponseConfig();
@@ -243,12 +242,12 @@ namespace PortalProvider.Loaders
 		public static KeyValuePair<string, string>? GetInitializationItem<T>(ResponseList<ResponseConfig> configs, string propertyName)
 		{
 			KeyValuePair<string, string>? Result = null;
-			T dumyConfig = Activator.CreateInstance<T>();
+			T dummyConfig = Activator.CreateInstance<T>();
 			try
 			{
-				if (configs.Data.Items.Count(i => i.Key == dumyConfig.GetAttribute<KeyAndDefaultValueAttribute>(propertyName).Key) == 0)
-					Result = new KeyValuePair<string, string>(dumyConfig.GetAttribute<KeyAndDefaultValueAttribute>(propertyName).Key
-																, dumyConfig.GetAttribute<KeyAndDefaultValueAttribute>(propertyName).DefaultValue);
+				if (!configs.Data.Items.Exists(i => i.Key == dummyConfig.GetAttribute<KeyAndDefaultValueAttribute>(propertyName).Key))
+					Result = new KeyValuePair<string, string>(dummyConfig.GetAttribute<KeyAndDefaultValueAttribute>(propertyName).Key
+																, dummyConfig.GetAttribute<KeyAndDefaultValueAttribute>(propertyName).DefaultValue);
 			}
 			catch (Exception ex)
 			{

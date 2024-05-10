@@ -47,7 +47,7 @@ namespace PortalProviderInterface
 		Task<ResponseList<ResponseServiceGroup>> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>서비스 그룹 정보를 가져온다.</summary>
@@ -74,7 +74,7 @@ namespace PortalProviderInterface
 			EnumServiceType ServiceType
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "");
+			, List<string> SearchFields = null, string SearchKeyword = null);
 
 		/// <summary>주어진 서비스 그룹 아이디에 해당하는 서비스 그룹에 참여가 가능한 서비스 목록을 가져온다.</summary>
 		/// <param name="Id">서비스 그룹 아이디 (null인 경우, 어느 그룹에도 속하지 않은 서비스만 검색한다.)</param>
@@ -89,7 +89,7 @@ namespace PortalProviderInterface
 			string Id
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "");
+			, List<string> SearchFields = null, string SearchKeyword = null);
 
 		/// <summary>서비스 그룹 시작</summary>
 		/// <param name="Id">서비스 그룹 아이디</param>

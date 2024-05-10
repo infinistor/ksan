@@ -378,7 +378,7 @@ namespace PortalProvider.Providers.Accounts
 		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
 		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		public async Task<ResponseList<ResponseClaim>> GetRoleClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "")
+		public async Task<ResponseList<ResponseClaim>> GetRoleClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = null)
 		{
 			ResponseList<ResponseClaim> Result = new ResponseList<ResponseClaim>();
 			try
@@ -418,7 +418,7 @@ namespace PortalProvider.Providers.Accounts
 		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 20)</param>
 		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		public async Task<ResponseList<ResponseUser>> GetRoleUsers(string Id, int Skip = 0, int CountPerPage = 100, string SearchKeyword = "")
+		public async Task<ResponseList<ResponseUser>> GetRoleUsers(string Id, int Skip = 0, int CountPerPage = 100, string SearchKeyword = null)
 		{
 			ResponseList<ResponseUser> Result = new ResponseList<ResponseUser>();
 			try
@@ -436,7 +436,7 @@ namespace PortalProvider.Providers.Accounts
 					Result.Data = await m_dbContext.UserRoles.AsNoTracking()
 						.Join(m_dbContext.Users, i => i.UserId, i => i.Id, (i, j) => new { Role = i, User = j })
 						.Where(i => i.Role.RoleId == SearchId
-									&& i.User.IsDeleted == false
+									&& !i.User.IsDeleted
 									&& (SearchKeyword.IsEmpty()
 										|| i.User.LoginId.Contains(SearchKeyword)
 										|| i.User.Email.Contains(SearchKeyword)
@@ -665,12 +665,9 @@ namespace PortalProvider.Providers.Accounts
 
 						// 해당 역할의 기존 권한 목록을 가져온다.
 						var claims = await m_roleManager.GetClaimsAsync(Role);
-						if (claims != null)
-						{
-							// 해당 역할의 권한 중에 해당 권한이 있는지 검사
-							if (claims.Where(i => i.Type == "Permission" && i.Value == Request.ClaimValue).Any())
-								Exist = true;
-						}
+
+						// 해당 역할의 권한 중에 해당 권한이 있는지 검사
+						if (claims != null && claims.Any(i => i.Type == "Permission" && i.Value == Request.ClaimValue)) Exist = true;
 
 						// 해당 역할에 권한이 포함되어 있지 않은 경우
 						if (!Exist)
@@ -716,13 +713,7 @@ namespace PortalProvider.Providers.Accounts
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (RoleId.IsEmpty() || !Guid.TryParse(RoleId, out Guid SearchId))
-				{
-					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
-				}
-				// 역할 아이디가 유효하지 않은 경우
-				else if (Request == null)
+				if (RoleId.IsEmpty() || !Guid.TryParse(RoleId, out Guid SearchId) || Request == null)
 				{
 					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
 					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
@@ -754,45 +745,43 @@ namespace PortalProvider.Providers.Accounts
 					// 해당 역할이 존재하는 경우
 					else
 					{
-						using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+						using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+						try
 						{
-							try
+							// 기존 역할 권한을 가져온다.
+							var OldClaims = await m_dbContext.RoleClaims
+								.Where(i => i.RoleId == SearchId)
+								.ToListAsync();
+
+							// 기존 역할 권한 삭제
+							m_dbContext.RoleClaims.RemoveRange(OldClaims);
+							await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+							// 요청한 모든 권한에 대해서 처리
+							foreach (var Claim in Request)
 							{
-								// 기존 역할 권한을 가져온다.
-								var OldClaims = await m_dbContext.RoleClaims
-									.Where(i => i.RoleId == SearchId)
-									.ToListAsync();
-
-								// 기존 역할 권한 삭제
-								m_dbContext.RoleClaims.RemoveRange(OldClaims);
-								await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-								// 요청한 모든 권한에 대해서 처리
-								foreach (var Claim in Request)
+								// 역할 권한 추가
+								await m_dbContext.RoleClaims.AddAsync(new RoleClaim()
 								{
-									// 역할 권한 추가
-									await m_dbContext.RoleClaims.AddAsync(new RoleClaim()
-									{
-										RoleId = Guid.Parse(RoleId),
-										ClaimType = "Permission",
-										ClaimValue = Claim.ClaimValue
-									});
-								}
-
-								await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-								await Transaction.CommitAsync();
-
-								Result.Result = EnumResponseResult.Success;
+									RoleId = Guid.Parse(RoleId),
+									ClaimType = "Permission",
+									ClaimValue = Claim.ClaimValue
+								});
 							}
-							catch (Exception ex)
-							{
-								Transaction.Rollback();
 
-								NNException.Log(ex);
+							await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+							await Transaction.CommitAsync();
 
-								Result.Code = Resource.EC_COMMON__EXCEPTION;
-								Result.Message = Resource.EM_COMMON__EXCEPTION;
-							}
+							Result.Result = EnumResponseResult.Success;
+						}
+						catch (Exception ex)
+						{
+							Transaction.Rollback();
+
+							NNException.Log(ex);
+
+							Result.Code = Resource.EC_COMMON__EXCEPTION;
+							Result.Message = Resource.EM_COMMON__EXCEPTION;
 						}
 					}
 				}
@@ -817,14 +806,8 @@ namespace PortalProvider.Providers.Accounts
 			var Result = new ResponseData();
 			try
 			{
-				// 역할 아이디가 유효하지 않은 경우
-				if (RoleId.IsEmpty())
-				{
-					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
-				}
-				// 파라미터가 유효하지 않은 경우
-				else if (UserId.IsEmpty())
+				// 유효하지 않은 경우
+				if (RoleId.IsEmpty() || UserId.IsEmpty())
 				{
 					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
 					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
@@ -896,14 +879,8 @@ namespace PortalProvider.Providers.Accounts
 			var Result = new ResponseData();
 			try
 			{
-				// 역할명이 유효하지 않은 경우
-				if (RoleName.IsEmpty())
-				{
-					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
-				}
-				// 파라미터가 유효하지 않은 경우
-				else if (UserId.IsEmpty())
+				// 유효하지 않은 경우
+				if (RoleName.IsEmpty() || UserId.IsEmpty())
 				{
 					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
 					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
@@ -975,14 +952,8 @@ namespace PortalProvider.Providers.Accounts
 			var Result = new ResponseData();
 			try
 			{
-				// 역할 아이디가 유효하지 않은 경우
-				if (RoleId.IsEmpty())
-				{
-					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
-				}
-				// 파라미터가 유효하지 않은 경우
-				else if (ClaimValue.IsEmpty())
+				// 유효하지 않은 경우
+				if (RoleId.IsEmpty() || ClaimValue.IsEmpty())
 				{
 					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
 					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
@@ -1003,7 +974,7 @@ namespace PortalProvider.Providers.Accounts
 						if (Claims != null)
 						{
 							// 해당 역할의 권한 중에 해당 권한이 있는지 검사
-							Claim = Claims.Where(i => i.Type == "Permission" && i.Value == ClaimValue).FirstOrDefault();
+							Claim = Claims.FirstOrDefault(i => i.Type == "Permission" && i.Value == ClaimValue);
 						}
 
 						// 해당 역할에 권한이 포함되어 있는 경우
@@ -1097,7 +1068,7 @@ namespace PortalProvider.Providers.Accounts
 				foreach (var Claim in Result.Data.Items)
 				{
 					Claim.HasChild = Result.Data.Items
-						.Any(i =>
+						.Exists(i =>
 							i.ClaimValue.StartsWith(Claim.ClaimValue)
 							&& i.Depth == Claim.Depth + 1
 						);
@@ -1141,7 +1112,7 @@ namespace PortalProvider.Providers.Accounts
 					foreach (var Claim in Result.Data.Items)
 					{
 						Claim.HasChild = Result.Data.Items
-							.Any(i =>
+							.Exists(i =>
 								i.ClaimValue.StartsWith(Claim.ClaimValue)
 								&& i.Depth == Claim.Depth + 1
 							);

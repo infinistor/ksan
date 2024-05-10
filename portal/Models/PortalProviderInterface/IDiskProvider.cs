@@ -36,9 +36,9 @@ namespace PortalProviderInterface
 
 		/// <summary>디스크 상태 수정</summary>
 		/// <param name="Id">디스크 아이디 / 이름</param>
-		/// <param name="state">디스크 상태</param>
+		/// <param name="State">디스크 상태</param>
 		/// <returns>디스크 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(string Id, EnumDiskState state);
+		Task<ResponseData> UpdateState(string Id, EnumDiskState State);
 
 		/// <summary>디스크 사용 정보 수정</summary>
 		/// <param name="Request">디스크 사용 정보 수정 요청 객체</param>
@@ -50,6 +50,12 @@ namespace PortalProviderInterface
 		/// <param name="DiskRwMode">디스크 읽기/쓰기 모드</param>
 		/// <returns>디스크 읽기/쓰기 모드 수정 결과 객체</returns>
 		Task<ResponseData> UpdateRwMode(string Id, EnumDiskRwMode DiskRwMode);
+
+		/// <summary>디스크 삭제 모드 수정</summary>
+		/// <param name="Id">디스크 아이디 / 이름</param>
+		/// <param name="DiskDeleting">디스크 읽기/쓰기 모드</param>
+		/// <returns>디스크 삭제 모드 수정 결과 객체</returns>
+		Task<ResponseData> UpdateDeleteMode(string Id, bool DiskDeleting);
 
 		/// <param name="ServerId">서버 아이디</param>
 		/// <param name="Id">디스크 아이디 / 이름</param>
@@ -69,10 +75,10 @@ namespace PortalProviderInterface
 		/// <returns>디스크 목록 객체</returns>
 		Task<ResponseList<ResponseDisk>> GetList(
 			string ServerId,
-			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
+			List<EnumDiskState> SearchStates = null, List<EnumDiskRwMode> SearchRwModes = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>전체 디스크 목록을 가져온다.</summary>
@@ -86,22 +92,22 @@ namespace PortalProviderInterface
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 목록 객체</returns>
 		Task<ResponseList<ResponseDisk>> GetList(
-			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
+			List<EnumDiskState> SearchStates = null, List<EnumDiskRwMode> SearchRwModes = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>해당 디스크가 존재하는지 여부</summary>
 		/// <param name="Id">디스크 아이디 / 이름</param>
 		/// <returns>디스크 정보 객체</returns>
 		Task<ResponseData<ResponseDiskWithServerAndNetwork>> Get(string Id);
-		
+
 		/// <summary>해당 이름이 존재하는지 여부</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 아이디</param>
 		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		Task<bool> IsNameExist(string Name, Guid? ExceptId = null);
+		Task<bool> IsExistName(string Name, Guid? ExceptId = null);
 
 		/// <summary>디스크 임계값을 가져온다.</summary>
 		/// <returns>임계값 정보 객체</returns>

@@ -146,7 +146,7 @@ namespace PortalSvr
 				Services.AddTransient<IRoleProvider, RoleProvider>();
 				Services.AddTransient<IUserProvider, UserProvider>();
 				Services.AddTransient<IAccountProvider, AccountProvider>();
-				Services.AddTransient<LogProvider, LogProvider>();
+				Services.AddTransient<ISystemLogProvider, SystemLogProvider>();
 				Services.AddTransient<IUserActionLogProvider, UserActionLogProvider>();
 				Services.AddTransient<IApiKeyProvider, ApiKeyProvider>();
 				Services.AddTransient<IRabbitMQSender, RabbitMQSender>();
@@ -161,7 +161,7 @@ namespace PortalSvr
 				Services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
 				Services.AddTransient<IKsanUserProvider, KsanUserProvider>();
 				Services.AddTransient<IRegionProvider, RegionProvider>();
-				Services.AddTransient<ISystemLogProvider, SystemLogProvider>();
+				Services.AddTransient<ILogProvider, LogProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
 				Services.AddTransient<IServerInitializer, ServerInitializer>();
 				Services.AddTransient<IS3LogProvider, S3LogProvider>();

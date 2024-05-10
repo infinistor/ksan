@@ -25,7 +25,7 @@ namespace PortalSvr.Services
 		public async Task Invoke(HttpContext context, ILogger<AccessLogMiddleware> logger)
 		{
 			await _next.Invoke(context);
-			var message = $"{context.Connection.RemoteIpAddress} {context.Request.Path} {context.Response.StatusCode} {context.Response.ContentLength} {context.Request.Headers["User-Agent"]}";
+			var message = $"{context.Request.HttpContext.Connection.RemoteIpAddress} \"{context.Request.Method} {context.Request.Path} {context.Request.Protocol}\" {context.Response.StatusCode} {context.Response.ContentLength} {context.Request.Headers["User-Agent"]}";
 			logger.LogInformation(message);
 		}
 	}

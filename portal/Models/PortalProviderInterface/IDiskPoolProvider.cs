@@ -47,7 +47,7 @@ namespace PortalProviderInterface
 		Task<ResponseList<ResponseDiskPoolWithDisks>> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>디스크 풀 목록을 가져온다.</summary>
@@ -90,7 +90,7 @@ namespace PortalProviderInterface
 		/// <returns>참여가 가능한 디스크 목록 객체</returns>
 		Task<ResponseList<ResponseDisk>> GetAvailableDisks(int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "");
+			, List<string> SearchFields = null, string SearchKeyword = null);
 
 		/// <summary>주어진 디스크 풀 아이디에 해당하는 디스크 풀에 참여가 가능한 디스크 목록을 가져온다.</summary>
 		/// <param name="Id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
@@ -105,7 +105,7 @@ namespace PortalProviderInterface
 			string Id
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "");
+			, List<string> SearchFields = null, string SearchKeyword = null);
 
 		/// <summary>디스크풀에 디스크들을 추가한다.</summary>
 		/// <param name="Id">디스크 풀 아이디 / 이름</param>

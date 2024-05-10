@@ -25,9 +25,9 @@ namespace PortalProviderInterface
 		Task<ResponseData<ResponseRegion>> Add(RequestRegion Request);
 
 		/// <summary>리전을 동기화한다.</summary>
-		/// <param name="Request">리전 정보 목록</param>
+		/// <param name="Requests">리전 정보 목록</param>
 		/// <returns>리전 등록 결과</returns>
-		Task<ResponseData> Sync(List<RequestRegionSync> Request);
+		Task<ResponseData> Sync(List<RequestRegionSync> Requests);
 
 		/// <summary>리전을 삭제한다.</summary>
 		/// <param name="RegionName">리전 식별자</param>

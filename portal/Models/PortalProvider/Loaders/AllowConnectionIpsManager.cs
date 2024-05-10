@@ -88,8 +88,8 @@ namespace PortalProvider.Loaders
 					addressNumber = address.ToUint();
 
 					// 허용된 아이피 목록을 설정하지 않았거나, 설정된 범위 내의 아이피인 경우
-					if (m_allowedConnectionIps.All(i => i.RoleId.ToString() != roleId)
-						|| m_allowedConnectionIps.Any(i => i.RoleId.ToString() == roleId && i.StartAddress <= addressNumber && addressNumber <= i.EndAddress))
+					if (m_allowedConnectionIps.TrueForAll(i => i.RoleId.ToString() != roleId)
+						|| m_allowedConnectionIps.Exists(i => i.RoleId.ToString() == roleId && i.StartAddress <= addressNumber && addressNumber <= i.EndAddress))
 						Result = true;
 				}
 			}

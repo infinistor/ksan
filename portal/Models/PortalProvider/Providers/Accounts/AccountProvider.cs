@@ -311,7 +311,7 @@ namespace PortalProvider.Providers.Accounts
 					if (ResponseApiKey.Result == EnumResponseResult.Success)
 					{
 						// 해당 계정을 찾는다.
-						var User = await m_userProvider.GetUserById(ResponseApiKey.Data.UserId);
+						var User = await m_userProvider.GetUserById(ResponseApiKey.Data.UserId.ToString());
 
 						//해당 계정을 찾을수 없는 경우
 						if (User == null || User.IsDeleted)
@@ -323,7 +323,7 @@ namespace PortalProvider.Providers.Accounts
 						else
 						{
 							//이메일 인증이 되어있지 않는 경우
-							if (await m_userManager.IsEmailConfirmedAsync(User) == false)
+							if (!await m_userManager.IsEmailConfirmedAsync(User))
 							{
 								Result.Code = Resource.EC_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
 								Result.Message = Resource.EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
@@ -388,7 +388,7 @@ namespace PortalProvider.Providers.Accounts
 					else
 					{
 						//이메일 인증이 되어있지 않는 경우
-						if (await m_userManager.IsEmailConfirmedAsync(User) == false)
+						if (!await m_userManager.IsEmailConfirmedAsync(User))
 						{
 							Result.Code = Resource.EC_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
 							Result.Message = Resource.EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
@@ -883,15 +883,12 @@ namespace PortalProvider.Providers.Accounts
 						// 에러 출력
 						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
 						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
-
-						//// 외부 해킹을 통해서 가입자 확인이 불가능하도록 하기 위해서 성공 반환
-						//Result.Result = EnumResponseResult.Success;
 					}
 					// 회원 정보가 유효한 경우
 					else
 					{
 						// 이메일 인증이 되지 않은 경우
-						if (await m_userManager.IsEmailConfirmedAsync(User) == false)
+						if (!await m_userManager.IsEmailConfirmedAsync(User))
 						{
 							Result.Code = Resource.EC_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
 							Result.Message = Resource.EM_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
@@ -971,7 +968,7 @@ namespace PortalProvider.Providers.Accounts
 					else
 					{
 						// 이메일 인증이 되지 않은 경우
-						if (await m_userManager.IsEmailConfirmedAsync(User) == false)
+						if (!await m_userManager.IsEmailConfirmedAsync(User))
 						{
 							Result.Code = Resource.EC_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
 							Result.Message = Resource.EM_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
@@ -1176,15 +1173,15 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>로그인한 사용자에 대한 권한 목록을 가져온다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
 		/// <returns>로그인한 사용자에 대한 사용자 목록</returns>
-		public async Task<ResponseList<ResponseClaim>> GetClaims(ClaimsPrincipal loginUser)
+		public async Task<ResponseList<ResponseClaim>> GetClaims(ClaimsPrincipal LoginUser)
 		{
 			var Result = new ResponseList<ResponseClaim>();
 			try
 			{
 				// 로그인한 사용자 계정을 가져온다.
-				var User = await m_userManager.GetUserAsync(loginUser);
+				var User = await m_userManager.GetUserAsync(LoginUser);
 
 				//해당 계정을 찾을수 없는 경우
 				if (User == null || User.IsDeleted)
