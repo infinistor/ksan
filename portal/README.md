@@ -296,8 +296,6 @@ docker cp infinistor.pfx ksan-api-portal:/app
 		"LogLevel": {
 			"Default": "Information",
 			"Microsoft": "Warning",
-			"Microsoft.Hosting.Lifetime": "Information",
-			"PortalProvider": "Information"
 		}
 	},
 	"AllowedHosts": "*"
