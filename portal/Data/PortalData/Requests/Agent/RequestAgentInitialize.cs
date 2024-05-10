@@ -17,6 +17,15 @@ namespace PortalData.Requests.Agent
 		/// <summary> 서버 주소 </summary>
 		public string LocalIp { get; set; }
 
+		/// <summary> 서버 아이디 </summary>
+		public string ServerId { get; set; }
+
+		/// <summary> 서버 이름 </summary>
+		public string ServerName { get; set; }
+
+		/// <summary> Agent 아이디 </summary>
+		public string AgentServiceId { get; set; }
+
 		/// <summary> 포탈 주소 </summary>
 		public string PortalHost { get; set; }
 
