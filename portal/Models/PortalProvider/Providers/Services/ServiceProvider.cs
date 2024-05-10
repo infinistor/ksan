@@ -71,8 +71,22 @@ namespace PortalProvider.Providers.Services
 					return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 동일한 이름이 존재하는 경우
-				if (await this.IsNameExist(Request.Name))
+				if (await IsNameExist(Request.Name))
 					return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICES_DUPLICATED_NAME);
+
+
+				// Id를 입력했을 경우
+				var Id = Guid.NewGuid();
+				if (!string.IsNullOrEmpty(Request.Id))
+				{
+					// Guid로 반환 가능한지 확인
+					if (!Guid.TryParse(Request.Id, out Id))
+						return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					// 중복 체크
+					if (await IsExistId(Id))
+						return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DUPLICATED_ID);
+				}
 
 				// 그룹 아이디가 존재하고 유효한 Guid가 아닌 경우
 				Guid GroupGuid = Guid.Empty;
@@ -120,7 +134,7 @@ namespace PortalProvider.Providers.Services
 						return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVICES_INVALID_VLAN_ID);
 
 					// 해당 VLAN 정보를 가져온다.
-					var Vlan = await this.m_dbContext.NetworkInterfaceVlans.AsNoTracking()
+					var Vlan = await m_dbContext.NetworkInterfaceVlans.AsNoTracking()
 						.Where(i => i.Id == VlanGuid)
 						.Include(i => i.NetworkInterface)
 						.FirstOrDefaultAsync();
@@ -132,62 +146,56 @@ namespace PortalProvider.Providers.Services
 					VlanGuids.Add(VlanGuid);
 				}
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 생성한다.
+					var NewData = new Service()
 					{
-						// 정보를 생성한다.
-						var NewData = new Service()
+						Id = Id,
+						GroupId = GroupGuid == Guid.Empty ? null : GroupGuid,
+						ServerId = Server.Id,
+						Name = Request.Name,
+						Description = Request.Description,
+						ServiceType = (EnumDbServiceType)Request.ServiceType,
+						HaAction = (EnumDbHaAction)Request.HaAction,
+						State = (EnumDbServiceState)Request.State,
+						MemoryTotal = Server.MemoryTotal,
+						ModId = ModId ?? LoginUserId,
+						ModName = ModName ?? LoginUserName,
+					};
+					await m_dbContext.Services.AddAsync(NewData);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+					// 모든 VLAN 아이디들에 대해서 처리
+					foreach (var VlanGuid in VlanGuids)
+					{
+						// 해당 VLAN 정보를 생성한다.
+						var NewVlan = new ServiceNetworkInterfaceVlan()
 						{
-							Id = Guid.NewGuid(),
-							GroupId = GroupGuid == Guid.Empty ? null : GroupGuid,
-							ServerId = Server.Id,
-							Name = Request.Name,
-							Description = Request.Description,
-							ServiceType = (EnumDbServiceType)Request.ServiceType,
-							HaAction = (EnumDbHaAction)Request.HaAction,
-							State = (EnumDbServiceState)Request.State,
-							MemoryTotal = Server.MemoryTotal,
-							RegId = ModId != null ? ModId : LoginUserId,
-							RegName = ModName != null ? ModName : LoginUserName,
-							RegDate = DateTime.Now,
-							ModId = ModId != null ? ModId : LoginUserId,
-							ModName = ModName != null ? ModName : LoginUserName,
-							ModDate = DateTime.Now
+							ServiceId = NewData.Id,
+							VlanId = VlanGuid
 						};
-						await m_dbContext.Services.AddAsync(NewData);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						// 모든 VLAN 아이디들에 대해서 처리
-						foreach (var VlanGuid in VlanGuids)
-						{
-							// 해당 VLAN 정보를 생성한다.
-							var NewVlan = new ServiceNetworkInterfaceVlan()
-							{
-								ServiceId = NewData.Id,
-								VlanId = VlanGuid
-							};
-							await this.m_dbContext.ServiceNetworkInterfaceVlans.AddAsync(NewVlan);
-						}
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
-
-						// 서비스 추가 메시지 전송
-						SendMq("*.services.added", new ResponseServiceMq().CopyValueFrom(NewData));
+						await this.m_dbContext.ServiceNetworkInterfaceVlans.AddAsync(NewVlan);
 					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						NNException.Log(ex);
+					await Transaction.CommitAsync();
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Result = EnumResponseResult.Success;
+					Result.Data = (await this.Get(NewData.Id.ToString())).Data;
+
+					// 서비스 추가 메시지 전송
+					SendMq("*.services.added", new ResponseServiceMq().CopyValueFrom(NewData));
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -270,8 +278,6 @@ namespace PortalProvider.Providers.Services
 				if (await this.IsNameExist(Request.Name, Exist.Id))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICES_DUPLICATED_NAME);
 
-				var Servers = new List<Server>();
-
 				// 모든 VLAN 아이디들에 대해서 처리
 				var VlanGuids = new List<Guid>();
 				foreach (var VlanId in Request.VlanIds)
@@ -293,67 +299,64 @@ namespace PortalProvider.Providers.Services
 					VlanGuids.Add(VlanGuid);
 				}
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 수정한다.
+					Exist.GroupId = GroupGuid == Guid.Empty ? null : GroupGuid;
+					Exist.ServerId = Server.Id;
+					Exist.Name = Request.Name;
+					Exist.Description = Request.Description;
+					Exist.ServiceType = (EnumDbServiceType)Request.ServiceType;
+					Exist.HaAction = (EnumDbHaAction)Request.HaAction;
+					Exist.State = (EnumDbServiceState)Request.State;
+					Exist.MemoryTotal = Server.MemoryTotal;
+
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
 					{
-						// 정보를 수정한다.
-						Exist.GroupId = GroupGuid == Guid.Empty ? null : GroupGuid;
-						Exist.ServerId = Server.Id;
-						Exist.Name = Request.Name;
-						Exist.Description = Request.Description;
-						Exist.ServiceType = (EnumDbServiceType)Request.ServiceType;
-						Exist.HaAction = (EnumDbHaAction)Request.HaAction;
-						Exist.State = (EnumDbServiceState)Request.State;
-						Exist.MemoryTotal = Server.MemoryTotal;
-
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-						{
-							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
-							Exist.ModName = LoginUserName;
-							Exist.ModDate = DateTime.Now;
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						}
-
-						// 기존 VLAN 매핑 목록을 가져온다.
-						var ExistVlans = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
-							.Where(i => i.ServiceId == Exist.Id)
-							.ToListAsync();
-
-						// 기존 VLAN 매핑 목록 삭제
-						m_dbContext.RemoveRange(ExistVlans);
+						Exist.ModId = LoginUserId;
+						Exist.ModName = LoginUserName;
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						// 모든 VLAN 아이디들에 대해서 처리
-						foreach (var VlanGuid in VlanGuids)
-						{
-							// 해당 VLAN 정보를 생성한다.
-							var NewVlan = new ServiceNetworkInterfaceVlan()
-							{
-								ServiceId = Exist.Id,
-								VlanId = VlanGuid
-							};
-							await this.m_dbContext.ServiceNetworkInterfaceVlans.AddAsync(NewVlan);
-						}
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-
-						// 서비스 변경 메시지 전송
-						SendMq("*.services.updated", new ResponseServiceMq().CopyValueFrom(Exist));
 					}
-					catch (Exception ex)
+
+					// 기존 VLAN 매핑 목록을 가져온다.
+					var ExistVlans = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
+						.Where(i => i.ServiceId == Exist.Id)
+						.ToListAsync();
+
+					// 기존 VLAN 매핑 목록 삭제
+					m_dbContext.RemoveRange(ExistVlans);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+					// 모든 VLAN 아이디들에 대해서 처리
+					foreach (var VlanGuid in VlanGuids)
 					{
-						await Transaction.RollbackAsync();
-
-						NNException.Log(ex);
-
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
+						// 해당 VLAN 정보를 생성한다.
+						var NewVlan = new ServiceNetworkInterfaceVlan()
+						{
+							ServiceId = Exist.Id,
+							VlanId = VlanGuid
+						};
+						await this.m_dbContext.ServiceNetworkInterfaceVlans.AddAsync(NewVlan);
 					}
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+					await Transaction.CommitAsync();
+
+					Result.Result = EnumResponseResult.Success;
+
+					// 서비스 변경 메시지 전송
+					SendMq("*.services.updated", new ResponseServiceMq().CopyValueFrom(Exist));
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -373,7 +376,7 @@ namespace PortalProvider.Providers.Services
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateState(string Id, EnumServiceState State, string ModId = "", string ModName = "")
+		public async Task<ResponseData> UpdateState(string Id, EnumServiceState State, Guid? ModId = null, string ModName = null)
 		{
 			var Result = new ResponseData();
 
@@ -397,39 +400,31 @@ namespace PortalProvider.Providers.Services
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				// 파라미터로 넘어온 수정자 아이디 파싱
-				var ModGuid = LoginUserId;
-				if (!ModId.IsEmpty())
-					Guid.TryParse(ModId, out ModGuid);
-
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 상태가 변경되었는지 확인한다.
-						var isChange = Exist.State != (EnumDbServiceState)State;
+					// 상태가 변경되었는지 확인한다.
+					var isChange = Exist.State != (EnumDbServiceState)State;
 
-						// 정보를 수정한다.
-						Exist.State = (EnumDbServiceState)State;
-						Exist.ModId = ModGuid != Guid.Empty ? ModGuid : null;
-						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
-						Exist.ModDate = DateTime.Now;
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
+					// 정보를 수정한다.
+					Exist.State = (EnumDbServiceState)State;
+					Exist.ModId = ModId ?? LoginUserId;
+					Exist.ModName = ModName ?? LoginUserName;
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
-						// 상태가 변경되었을 경우 메시지 전송
-						if (isChange) SendMq("*.services.updated", new ResponseServiceMq().CopyValueFrom(Exist));
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					// 상태가 변경되었을 경우 메시지 전송
+					if (isChange) SendMq("*.services.updated", new ResponseServiceMq().CopyValueFrom(Exist));
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -448,7 +443,7 @@ namespace PortalProvider.Providers.Services
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateState(RequestServiceState Request, string ModId = "", string ModName = "")
+		public async Task<ResponseData> UpdateState(RequestServiceState Request, Guid? ModId = null, string ModName = null)
 		{
 			var Result = new ResponseData();
 
@@ -502,47 +497,44 @@ namespace PortalProvider.Providers.Services
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.CpuUsage = CpuUsage;
-						Exist.MemoryUsed = MemoryUsed;
-						Exist.ThreadCount = ThreadCount;
-						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
-						Exist.ModName = LoginUserName;
-						Exist.ModDate = DateTime.Now;
+					// 정보를 수정한다.
+					Exist.CpuUsage = CpuUsage;
+					Exist.MemoryUsed = MemoryUsed;
+					Exist.ThreadCount = ThreadCount;
+					Exist.ModId = LoginUserId;
+					Exist.ModName = LoginUserName;
 
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						// 사용 정보 추가
-						m_dbContext.ServiceUsages.Add(new ServiceUsage()
-						{
-							Id = Exist.Id,
-							RegDate = DateTime.Now,
-							CpuUsage = CpuUsage,
-							MemoryTotal = Exist.MemoryTotal,
-							MemoryUsed = MemoryUsed,
-							ThreadCount = ThreadCount
-						});
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
+					// 사용 정보 추가
+					m_dbContext.ServiceUsages.Add(new ServiceUsage()
 					{
-						await Transaction.RollbackAsync();
+						Id = Exist.Id,
+						RegDate = DateTime.Now,
+						CpuUsage = CpuUsage,
+						MemoryTotal = Exist.MemoryTotal,
+						MemoryUsed = MemoryUsed,
+						ThreadCount = ThreadCount
+					});
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						NNException.Log(ex);
+					await Transaction.CommitAsync();
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -589,7 +581,7 @@ namespace PortalProvider.Providers.Services
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서비스 HA 상태 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateHaAction(string Id, EnumHaAction State, string ModId = "", string ModName = "")
+		public async Task<ResponseData> UpdateHaAction(string Id, EnumHaAction State, Guid? ModId = null, string ModName = null)
 		{
 			var Result = new ResponseData();
 
@@ -613,35 +605,27 @@ namespace PortalProvider.Providers.Services
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				// 파라미터로 넘어온 수정자 아이디 파싱
-				Guid ModGuid = LoginUserId;
-				if (!ModId.IsEmpty())
-					Guid.TryParse(ModId, out ModGuid);
-
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.HaAction = (EnumDbHaAction)State;
-						Exist.ModId = ModGuid != Guid.Empty ? ModGuid : null;
-						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
-						Exist.ModDate = DateTime.Now;
+					// 정보를 수정한다.
+					Exist.HaAction = (EnumDbHaAction)State;
+					Exist.ModId = ModId ?? LoginUserId;
+					Exist.ModName = ModName ?? LoginUserName;
 
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -660,7 +644,7 @@ namespace PortalProvider.Providers.Services
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
 		/// <returns>서비스 HA 상태 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateHaAction(RequestServiceHaAction Request, string ModId = "", string ModName = "")
+		public async Task<ResponseData> UpdateHaAction(RequestServiceHaAction Request, Guid? ModId = null, string ModName = null)
 		{
 			var Result = new ResponseData();
 
@@ -709,48 +693,46 @@ namespace PortalProvider.Providers.Services
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData(Result.Result = EnumResponseResult.Success);
+					return new ResponseData(EnumResponseResult.Success);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// VLAN 연결 목록을 가져온다.
-						var Vlans = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
-							.Where(i => i.ServiceId == Exist.Id)
-							.ToListAsync();
-						// 서비스 연결 목록 삭제
-						m_dbContext.ServiceNetworkInterfaceVlans.RemoveRange(Vlans);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// VLAN 연결 목록을 가져온다.
+					var Vlans = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
+						.Where(i => i.ServiceId == Exist.Id)
+						.ToListAsync();
+					// 서비스 연결 목록 삭제
+					m_dbContext.ServiceNetworkInterfaceVlans.RemoveRange(Vlans);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						// 서비스 사용 정보 목록을 가져온다.
-						var Usages = await m_dbContext.ServiceUsages.AsNoTracking()
-							.Where(i => i.Id == Exist.Id)
-							.ToListAsync();
-						// 서비스 사용 정보 목록 삭제
-						m_dbContext.ServiceUsages.RemoveRange(Usages);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 서비스 사용 정보 목록을 가져온다.
+					var Usages = await m_dbContext.ServiceUsages.AsNoTracking()
+						.Where(i => i.Id == Exist.Id)
+						.ToListAsync();
+					// 서비스 사용 정보 목록 삭제
+					m_dbContext.ServiceUsages.RemoveRange(Usages);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						// 해당 데이터 삭제
-						m_dbContext.Services.Remove(Exist);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 해당 데이터 삭제
+					m_dbContext.Services.Remove(Exist);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 
-						// 서비스 삭제 메시지 전송
-						SendMq("*.services.removed", new ResponseServiceMq().CopyValueFrom(Exist));
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					// 서비스 삭제 메시지 전송
+					SendMq("*.services.removed", new ResponseServiceMq().CopyValueFrom(Exist));
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -778,7 +760,7 @@ namespace PortalProvider.Providers.Services
 			EnumServiceState? SearchState = null, EnumServiceType? SearchType = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Result = new ResponseList<ResponseServiceWithGroup>();
@@ -1100,36 +1082,34 @@ namespace PortalProvider.Providers.Services
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				// 새로운 이벤트를 저장한다.
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					var NewData = new ServiceEventLog()
 					{
-						var NewData = new ServiceEventLog()
-						{
-							Id = Exist.Id,
-							RegDate = DateTime.Now,
-							EventType = (EnumDbServiceEventType)Request.EventType,
-							Message = Request.Message,
-						};
-						await m_dbContext.ServiceEventLogs.AddAsync(NewData);
+						Id = Exist.Id,
+						RegDate = DateTime.Now,
+						EventType = (EnumDbServiceEventType)Request.EventType,
+						Message = Request.Message,
+					};
+					await m_dbContext.ServiceEventLogs.AddAsync(NewData);
 
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 
-						// 종료 이벤트가 발생할 경우 해당 서비스의 상태를 Offline으로 변경한다.
-						if (Request.EventType == EnumServiceEventType.Stop) await UpdateState(Request.Id, EnumServiceState.Offline);
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					// 종료 이벤트가 발생할 경우 해당 서비스의 상태를 Offline으로 변경한다.
+					if (Request.EventType == EnumServiceEventType.Stop) await UpdateState(Request.Id, EnumServiceState.Offline);
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -1156,7 +1136,7 @@ namespace PortalProvider.Providers.Services
 		public async Task<ResponseList<ResponseServiceEvent>> GetEventList(
 			string Id, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Result = new ResponseList<ResponseServiceEvent>();
@@ -1212,6 +1192,25 @@ namespace PortalProvider.Providers.Services
 			}
 
 			return Result;
+		}
+
+		
+		/// <summary> 해당 Id가 존재하는지 여부 </summary>
+		/// <param name="Id">검색할 Id</param>
+		/// <returns>해당 Id가 존재하는지 여부</returns>
+		public async Task<bool> IsExistId(Guid Id)
+		{
+			try
+			{
+				// 동일한 Id가 존재하는지 확인한다.
+				return await m_dbContext.Services.AsNoTracking().AnyAsync(i => i.Id == Id);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return false;
 		}
 	}
 }

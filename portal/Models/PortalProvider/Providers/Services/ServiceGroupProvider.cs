@@ -88,74 +88,63 @@ namespace PortalProvider.Providers.Services
 				var ServiceIds = new List<Guid>();
 
 				// 모든 서비스 아이디에 대해서 처리
-				if (Request.ServiceIds != null && Request.ServiceIds.Count > 0)
+				foreach (var ServiceId in Request.ServiceIds)
 				{
-					// 모든 서비스 아이디에 대해서 처리
-					foreach (var ServiceId in Request.ServiceIds)
-					{
-						if (!Guid.TryParse(ServiceId, out Guid ServiceGuid))
-							return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_INVALID_SERVICE_ID);
-						ServiceIds.Add(ServiceGuid);
-					}
-
-					// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우
-					if (await this.m_dbContext.Services.AsNoTracking()
-						.Where(i => ServiceIds.Contains(i.Id) && i.GroupId == null && i.ServiceType == (EnumDbServiceType)Request.ServiceType)
-						.CountAsync() != ServiceIds.Count)
-						return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_NOT_AVAILABLE_SERVICE_ID_USED);
+					if (!Guid.TryParse(ServiceId, out Guid ServiceGuid))
+						return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_INVALID_SERVICE_ID);
+					ServiceIds.Add(ServiceGuid);
 				}
 
-				using (var transaction = await m_dbContext.Database.BeginTransactionAsync())
+				// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우
+				if (await m_dbContext.Services.AsNoTracking()
+					.Where(i => ServiceIds.Contains(i.Id) && i.GroupId == null && i.ServiceType == (EnumDbServiceType)Request.ServiceType)
+					.CountAsync() != ServiceIds.Count)
+					return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_NOT_AVAILABLE_SERVICE_ID_USED);
+
+				using var transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 생성한다.
+					var NewData = new ServiceGroup()
 					{
-						// 정보를 생성한다.
-						var NewData = new ServiceGroup()
-						{
-							Id = Guid.NewGuid(),
-							Name = Request.Name,
-							Description = Request.Description,
-							ServiceType = (EnumDbServiceType)Request.ServiceType,
-							ServiceIpAddress = Request.ServiceIpAddress,
-							RegId = LoginUserId,
-							RegName = LoginUserName,
-							RegDate = DateTime.Now,
-							ModId = LoginUserId,
-							ModName = LoginUserName,
-							ModDate = DateTime.Now
-						};
-						await m_dbContext.ServiceGroups.AddAsync(NewData);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						Id = Guid.NewGuid(),
+						Name = Request.Name,
+						Description = Request.Description,
+						ServiceType = (EnumDbServiceType)Request.ServiceType,
+						ServiceIpAddress = Request.ServiceIpAddress,
+						ModId = LoginUserId,
+						ModName = LoginUserName,
+					};
+					await m_dbContext.ServiceGroups.AddAsync(NewData);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						// 모든 서비스 아이디에 대해서 처리
-						foreach (var GuidServiceId in ServiceIds)
-						{
-							// 해당 서비스 정보를 가져온다.
-							var Service = await m_dbContext.Services
-								.Where(i => i.Id == GuidServiceId)
-								.FirstOrDefaultAsync();
-
-							// 그룹 아이디 변경
-							Service.GroupId = NewData.Id;
-						}
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						await transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
-					}
-					catch (Exception ex)
+					// 모든 서비스 아이디에 대해서 처리
+					foreach (var GuidServiceId in ServiceIds)
 					{
-						await transaction.RollbackAsync();
+						// 해당 서비스 정보를 가져온다.
+						var Service = await m_dbContext.Services
+							.Where(i => i.Id == GuidServiceId)
+							.FirstOrDefaultAsync();
 
-						NNException.Log(ex);
-
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
+						// 그룹 아이디 변경
+						Service.GroupId = NewData.Id;
 					}
+					// 데이터가 변경된 경우 저장
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+					await transaction.CommitAsync();
+
+					Result.Result = EnumResponseResult.Success;
+					Result.Data = (await this.Get(NewData.Id.ToString())).Data;
+				}
+				catch (Exception ex)
+				{
+					await transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -199,91 +188,69 @@ namespace PortalProvider.Providers.Services
 				var ServiceIds = new List<Guid>();
 
 				// 모든 서비스 아이디에 대해서 처리
-				if (Request.ServiceIds != null && Request.ServiceIds.Count > 0)
+				foreach (var serviceId in Request.ServiceIds)
 				{
-					// 모든 서비스 아이디에 대해서 처리
-					foreach (var serviceId in Request.ServiceIds)
-					{
-						if (!Guid.TryParse(serviceId, out Guid ServiceGuid))
-							return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_INVALID_SERVICE_ID);
-						ServiceIds.Add(ServiceGuid);
-					}
-
-					// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우
-					if (await this.m_dbContext.Services.AsNoTracking()
-						.Where(i => ServiceIds.Contains(i.Id) && (i.GroupId == null || i.GroupId == GroupGuid) && i.ServiceType == (EnumDbServiceType)Request.ServiceType)
-						.CountAsync() != ServiceIds.Count)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_NOT_AVAILABLE_SERVICE_ID_USED);
+					if (!Guid.TryParse(serviceId, out Guid ServiceGuid))
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_INVALID_SERVICE_ID);
+					ServiceIds.Add(ServiceGuid);
 				}
 
+				// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우
+				if (await m_dbContext.Services.AsNoTracking().Where(i => ServiceIds.Contains(i.Id) && (i.GroupId == null || i.GroupId == GroupGuid) && i.ServiceType == (EnumDbServiceType)Request.ServiceType).CountAsync() != ServiceIds.Count)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_NOT_AVAILABLE_SERVICE_ID_USED);
+
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.ServiceGroups
-					.FirstOrDefaultAsync(i => i.Id == GroupGuid);
+				var Exist = await m_dbContext.ServiceGroups.FirstOrDefaultAsync(i => i.Id == GroupGuid);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (var transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 이 서비스 그룹 아이디를 사용하는 이전 서비스의 그룹 아이디 초기화
+					var oldServices = await m_dbContext.Services.Where(i => i.GroupId == GroupGuid).ToListAsync();
+					if (oldServices != null)
 					{
-						// 이 서비스 그룹 아이디를 사용하는 이전 서비스의 그룹 아이디 초기화
-						List<Service> oldServices = await m_dbContext.Services
-							.Where(i => i.GroupId == GroupGuid)
-							.ToListAsync();
-						if (oldServices.Count > 0)
-						{
-							// 모든 서비스 아이디에 대해서 처리
-							foreach (var oldService in oldServices)
-								// 그룹 아이디 변경
-								oldService.GroupId = null;
-							// 데이터가 변경된 경우 저장
-							if (m_dbContext.HasChanges())
-								await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						}
-
 						// 모든 서비스 아이디에 대해서 처리
-						foreach (var GuidServiceId in ServiceIds)
-						{
-							// 해당 서비스 정보를 가져온다.
-							var service = await m_dbContext.Services
-								.Where(i => i.Id == GuidServiceId)
-								.FirstOrDefaultAsync();
-
-							// 그룹 아이디 변경
-							service.GroupId = GroupGuid;
-						}
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						// 정보를 수정한다.
-						Exist.Name = Request.Name;
-						Exist.Description = Request.Description;
-						Exist.ServiceType = (EnumDbServiceType)Request.ServiceType;
-						Exist.ServiceIpAddress = Request.ServiceIpAddress;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-						{
-							Exist.ModId = LoginUserId;
-							Exist.ModName = LoginUserName;
-							Exist.ModDate = DateTime.Now;
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						}
-						await transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
+						foreach (var oldService in oldServices) oldService.GroupId = null;
 					}
-					catch (Exception ex)
+
+					// 모든 서비스 아이디에 대해서 처리
+					foreach (var GuidServiceId in ServiceIds)
 					{
-						await transaction.RollbackAsync();
-
-						NNException.Log(ex);
-
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
+						// 해당 서비스 정보를 가져온다.
+						var service = await m_dbContext.Services.Where(i => i.Id == GuidServiceId).FirstOrDefaultAsync();
+						// 그룹 아이디 변경
+						service.GroupId = GroupGuid;
 					}
+
+					// 정보를 수정한다.
+					Exist.Name = Request.Name;
+					Exist.Description = Request.Description;
+					Exist.ServiceType = (EnumDbServiceType)Request.ServiceType;
+					Exist.ServiceIpAddress = Request.ServiceIpAddress;
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
+					{
+						Exist.ModId = LoginUserId;
+						Exist.ModName = LoginUserName;
+					}
+					// 저장
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await transaction.CommitAsync();
+
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -316,40 +283,38 @@ namespace PortalProvider.Providers.Services
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData(Result.Result = EnumResponseResult.Success);
+					return new ResponseData(EnumResponseResult.Success);
 
 				// 해당 그룹에 속한 서비스 목록을 가져온다.
-				var Services = await this.m_dbContext.Services
+				var Services = await m_dbContext.Services
 					.Where(i => i.GroupId == GroupGuid)
 					.ToListAsync();
 
-				using (var transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 모든 서비스에 대해서 처리
-						foreach (var Service in Services)
-							Service.GroupId = null;
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						// 해당 데이터 삭제
-						m_dbContext.ServiceGroups.Remove(Exist);
+					// 모든 서비스에 대해서 처리
+					foreach (var Service in Services)
+						Service.GroupId = null;
+					if (m_dbContext.HasChanges())
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await transaction.CommitAsync();
+					// 해당 데이터 삭제
+					m_dbContext.ServiceGroups.Remove(Exist);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await transaction.RollbackAsync();
+					await transaction.CommitAsync();
 
-						NNException.Log(ex);
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await transaction.RollbackAsync();
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -374,7 +339,7 @@ namespace PortalProvider.Providers.Services
 		public async Task<ResponseList<ResponseServiceGroup>> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			, List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Result = new ResponseList<ResponseServiceGroup>();
@@ -391,7 +356,7 @@ namespace PortalProvider.Providers.Services
 				InitSearchFields(ref SearchFields);
 
 				EnumServiceType ServiceType = EnumServiceType.Unknown;
-				if (SearchFields.Contains("servicetype"))
+				if (SearchFields.Contains("serviceType"))
 					Enum.TryParse(SearchKeyword, out ServiceType);
 
 				// 목록을 가져온다.
@@ -401,8 +366,8 @@ namespace PortalProvider.Providers.Services
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
 							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
-							|| (SearchFields.Contains("servicetype") && i.ServiceType == (EnumDbServiceType)ServiceType)
-							|| (SearchFields.Contains("serviceipaddress") && i.ServiceIpAddress.Contains(SearchKeyword))
+							|| (SearchFields.Contains("serviceType") && i.ServiceType == (EnumDbServiceType)ServiceType)
+							|| (SearchFields.Contains("serviceIpAddress") && i.ServiceIpAddress.Contains(SearchKeyword))
 						)
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
@@ -502,14 +467,14 @@ namespace PortalProvider.Providers.Services
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (Name, Description, IpAddress)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, Address)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>참여가 가능한 서비스 목록 객체</returns>
 		public async Task<ResponseList<ResponseService>> GetAvailableServices(
 			EnumServiceType ServiceType
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "")
+			, List<string> SearchFields = null, string SearchKeyword = null)
 		{
 			var Result = new ResponseList<ResponseService>();
 
@@ -532,9 +497,9 @@ namespace PortalProvider.Providers.Services
 						&& i.GroupId == null
 						&& (
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
-							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
-							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
-							|| (SearchFields.Contains("ipaddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
+							|| (SearchFields.Contains("Name") && i.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("Description") && i.Description.Contains(SearchKeyword))
+							|| (SearchFields.Contains("Address") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
 						)
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
@@ -567,7 +532,7 @@ namespace PortalProvider.Providers.Services
 			string Id
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = "")
+			, List<string> SearchFields = null, string SearchKeyword = null)
 		{
 			var Result = new ResponseList<ResponseService>();
 
@@ -603,9 +568,9 @@ namespace PortalProvider.Providers.Services
 						&& (i.GroupId == null || (!Id.IsEmpty() && i.GroupId == GroupGuid))
 						&& (
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
-							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
-							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
-							|| (SearchFields.Contains("ipaddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
+							|| (SearchFields.Contains("Name") && i.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("Description") && i.Description.Contains(SearchKeyword))
+							|| (SearchFields.Contains("IpAddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
 						)
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
