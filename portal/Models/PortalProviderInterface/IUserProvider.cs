@@ -26,7 +26,7 @@ namespace PortalProviderInterface
 		/// <param name="Password">비밀번호 (옵션)</param>
 		/// <param name="ConfirmPassword">확인 비밀번호 (옵션)</param>
 		/// <returns>사용자 등록 결과</returns>
-		Task<ResponseData<ResponseUserWithRoles>> Add(RequestUserRegist Request, string Password = "", string ConfirmPassword = "");
+		Task<ResponseData<ResponseUserWithRoles>> Add(RequestUserCreate Request, string Password = "", string ConfirmPassword = "");
 
 		/// <summary>사용자를 수정한다.</summary>
 		/// <param name="Id">사용자 식별자</param>
@@ -84,7 +84,7 @@ namespace PortalProviderInterface
 			string SearchRoleName = "", DateTime? RegStartDate = null, DateTime? RegEndDate = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		);
 
 		/// <summary>특정 사용자에 대한 권한 목록을 가져온다.</summary>
@@ -93,7 +93,7 @@ namespace PortalProviderInterface
 		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
 		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 사용자에 대한 권한 목록</returns>
-		Task<ResponseList<ResponseClaim>> GetClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "");
+		Task<ResponseList<ResponseClaim>> GetClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = null);
 
 		/// <summary>특정 사용자에 대한 사용자 권한 목록을 가져온다.</summary>
 		/// <param name="Id">사용자 식별자</param>
@@ -101,7 +101,7 @@ namespace PortalProviderInterface
 		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
 		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 사용자에 대한 권한 목록</returns>
-		Task<ResponseList<ResponseClaim>> GetUserClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "");
+		Task<ResponseList<ResponseClaim>> GetUserClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = null);
 
 		/// <summary>특정 사용자에 권한을 추가한다.</summary>
 		/// <param name="Id">사용자 식별자</param>

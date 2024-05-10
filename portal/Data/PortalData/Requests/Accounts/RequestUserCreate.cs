@@ -14,7 +14,7 @@ using PortalResources;
 namespace PortalData.Requests.Accounts
 {
 	/// <summary>사용자 정보 등록 요청 클래스</summary>
-	public class RequestUserRegist : RequestUserUpdate
+	public class RequestUserCreate : RequestUserUpdate
 	{
 		/// <summary>로그인 아이디</summary>
 		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_REQUIRE_LOGIN_ID", ErrorMessageResourceType = typeof(Resource))]
