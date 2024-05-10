@@ -24,7 +24,6 @@ namespace PortalData.Requests.Servers
 		public string Id { get; set; } = "";
 
 		/// <summary> 호스트명</summary>
-		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string HostName { get; set; }
 
 		/// <summary>서버명</summary>

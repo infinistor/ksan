@@ -102,7 +102,7 @@ namespace PortalProvider.Providers.Servers
 					var NewData = new Server()
 					{
 						Id = Id,
-						HostName = Request.HostName,
+						HostName = Request.HostName ?? Request.Name,
 						Name = Request.Name,
 						Description = Request.Description,
 						CpuModel = Request.CpuModel,
