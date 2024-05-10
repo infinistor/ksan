@@ -16,21 +16,21 @@ namespace PortalData.Responses.Accounts
 	public class ResponseApiKey
 	{
 		/// <summary>API 키 아이디</summary>
-		public string KeyId { get; set; } = "";
+		public string KeyId { get; set; } = null;
 
 		/// <summary>사용자 아이디</summary>
-		public string UserId { get; set; } = "";
+		public Guid? UserId { get; set; } = null;
 
 		/// <summary>사용자명</summary>
-		public string UserName { get; set; } = "";
+		public string UserName { get; set; } = null;
 
 		/// <summary>키명</summary>
-		public string KeyName { get; set; } = "";
+		public string KeyName { get; set; } = null;
 
 		/// <summary>만료일</summary>
 		public DateTime ExpireDate { get; set; } = DateTime.Now;
 
 		/// <summary>키 값</summary>
-		public string KeyValue { get; set; } = "";
+		public string KeyValue { get; set; } = null;
 	}
 }

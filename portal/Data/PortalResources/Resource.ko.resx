@@ -1437,4 +1437,10 @@
   <data name="EM_S3_ACCESS_IP_REQUIRE_USER_ID" xml:space="preserve">
     <value>사용자 아이디를 입력하여 주세요.</value>
   </data>
+  <data name="UL_DISKS_READ_WRITE_MODE_DELETE" xml:space="preserve">
+    <value>삭제중</value>
+  </data>
+  <data name="EM_DISKS_INVALID_DISK_STATE" xml:space="preserve">
+    <value>디스크 상태가 올바르지 않습니다.</value>
+  </data>
 </root>

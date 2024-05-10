@@ -62,16 +62,12 @@ namespace PortalProvider.Providers.DiskGuids
 		/// <returns>디스크 등록 결과 객체</returns>
 		public async Task<ResponseData<ResponseDiskWithServerAndNetwork>> Add(string ServerId, RequestDisk Request, bool DiskCheck = true)
 		{
-			ResponseData<ResponseDiskWithServerAndNetwork> Result = new ResponseData<ResponseDiskWithServerAndNetwork>();
+			var Result = new ResponseData<ResponseDiskWithServerAndNetwork>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
 					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
-
-				// 서버 아이디가 유효하지 않는 경우
-				if (ServerId.IsEmpty())
-					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
 
 				// 서버 정보를 가져온다.
 				Server Server = null;
@@ -92,9 +88,21 @@ namespace PortalProvider.Providers.DiskGuids
 					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 동일한 이름이 존재할 경우
-				if (await this.IsNameExist(Request.Name))
+				if (await IsExistName(Request.Name))
 					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_COMMON_NAME_ALREADY_EXIST);
 
+				// Id를 입력했을 경우
+				var Id = Guid.NewGuid();
+				if (!string.IsNullOrEmpty(Request.Id))
+				{
+					// Guid로 반환 가능한지 확인
+					if (!Guid.TryParse(Request.Id, out Id))
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					// 중복 체크
+					if (await IsExistId(Id))
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DUPLICATED_ID);
+				}
 
 				// 디스크풀 정보가 존재할 경우
 				Guid DiskPoolGuid = Guid.Empty;
@@ -120,30 +128,21 @@ namespace PortalProvider.Providers.DiskGuids
 				if (DiskCheck)
 				{
 					// 디스크가 이미 마운트되어 있는지 확인 요청
-					var Response = SendRpcMq($"*.servers.{Server.Id.ToString()}.disks.check_mount", new { ServerId = Server.Id, Request.Path }, 10);
+					var Response = SendRpcMq($"*.servers.{Server.Id}.disks.check_mount", new { ServerId = Server.Id, Request.Path }, 10);
 
 					// 실패인 경우
 					if (Response.Result != EnumResponseResult.Success)
 						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Response.Code, Response.Message);
 				}
 
-				// 아이디 생성
-				var NewId = Guid.NewGuid();
-
 				// 디스크 체크가 활성화 되어 있을 경우만 확인
 				if (DiskCheck)
 				{
 					// 디스크 아이디 기록 요청
-					var ResponseWriteDiskId = SendRpcMq($"*.servers.{Server.Id.ToString()}.disks.write_disk_id", new
+					var ResponseWriteDiskId = SendRpcMq($"*.servers.{Server.Id}.disks.write_disk_id", new
 					{
-						Id = NewId.ToString(),
+						Id = Id.ToString(),
 						ServerId = Server.Id.ToString(),
-						RegId = LoginUserId,
-						RegName = LoginUserName,
-						RegDate = DateTime.Now,
-						ModId = LoginUserId,
-						ModName = LoginUserName,
-						ModDate = DateTime.Now,
 						Request.DiskPoolId,
 						Request.Name,
 						Request.Path,
@@ -154,47 +153,45 @@ namespace PortalProvider.Providers.DiskGuids
 						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, ResponseWriteDiskId.Code, ResponseWriteDiskId.Message);
 				}
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 생성한다.
+					var NewData = new Disk()
 					{
-						// 정보를 생성한다.
-						var NewData = new Disk()
-						{
-							Id = NewId,
-							DiskPoolId = DiskPoolGuid == Guid.Empty ? null : DiskPoolGuid,
-							Name = Request.Name,
-							ServerId = Server.Id,
-							Path = Request.Path,
-							State = (EnumDbDiskState)Request.State,
-							TotalInode = Request.TotalInode,
-							ReservedInode = Request.ReservedInode,
-							UsedInode = Request.UsedInode,
-							TotalSize = Request.TotalSize,
-							ReservedSize = Request.ReservedSize,
-							UsedSize = Request.UsedSize,
-							RwMode = (EnumDbDiskRwMode)Request.RwMode
-						};
-						await m_dbContext.Disks.AddAsync(NewData);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						Id = Id,
+						DiskPoolId = DiskPoolGuid == Guid.Empty ? null : DiskPoolGuid,
+						Name = Request.Name,
+						ServerId = Server.Id,
+						Path = Request.Path,
+						State = (EnumDbDiskState)Request.State,
+						TotalInode = Request.TotalInode,
+						ReservedInode = Request.ReservedInode,
+						UsedInode = Request.UsedInode,
+						TotalSize = Request.TotalSize,
+						ReservedSize = Request.ReservedSize,
+						UsedSize = Request.UsedSize,
+						RwMode = (EnumDbDiskRwMode)Request.RwMode
+					};
+					await m_dbContext.Disks.AddAsync(NewData);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						// 디스크 추가 정보 가져오기
-						Result = await this.Get(NewData.Id.ToString());
+					// 디스크 추가 정보 가져오기
+					Result = await Get(NewData.Id.ToString());
 
-						// 디스크 추가 정보 전송
-						SendMq("*.servers.disks.added", Result.Data);
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					// 디스크 추가 정보 전송
+					SendMq(Resource.MQ_DISK_ADD, Result.Data);
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -235,7 +232,7 @@ namespace PortalProvider.Providers.DiskGuids
 
 					// Guid일 경우
 					if (Guid.TryParse(Request.ServerId, out ServerGuid))
-						Server = await this.m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == ServerGuid);
+						Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == ServerGuid);
 					// 이름일 경우
 					else
 						Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Request.ServerId);
@@ -282,64 +279,61 @@ namespace PortalProvider.Providers.DiskGuids
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
 				// 동일한 이름이 존재할 경우
-				if (await this.IsNameExist(Request.Name, Exist.Id))
+				if (await IsExistName(Request.Name, Exist.Id))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_COMMON_NAME_ALREADY_EXIST);
 
-				// 마운트 경로가 변경되는 경우
-				if (Exist.Path != Request.Path)
+				// 마운트 경로가 변경되거나 서버가 변경될 경우
+				if (Request.Check && (Exist.Path != Request.Path || ServerGuid != Guid.Empty))
 				{
 					// 디스크가 이미 마운트되어 있는지 확인 요청
 					ResponseData Response;
 					if (ServerGuid != Guid.Empty)
 						Response = SendRpcMq($"*.servers.{ServerGuid}.disks.check_mount", new { ServerId = ServerGuid, Request.Path }, 10);
 					else
-						Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, Request.Path }, 10);
+						Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { Exist.ServerId, Request.Path }, 10);
 
 					// 실패인 경우
 					if (Response.Result != EnumResponseResult.Success)
 						return new ResponseData(EnumResponseResult.Error, Response.Code, Response.Message);
 				}
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.DiskPoolId = DiskPoolGuid == Guid.Empty ? null : DiskPoolGuid;
-						if (ServerGuid != Guid.Empty) Exist.ServerId = ServerGuid;
-						Exist.Name = Request.Name;
-						Exist.Path = Request.Path;
-						Exist.State = (EnumDbDiskState)Request.State;
-						Exist.TotalInode = Request.TotalInode;
-						Exist.ReservedInode = Request.ReservedInode;
-						Exist.UsedInode = Request.UsedInode;
-						Exist.TotalSize = Request.TotalSize;
-						Exist.ReservedSize = Request.ReservedSize;
-						Exist.UsedSize = Request.UsedSize;
-						Exist.RwMode = (EnumDbDiskRwMode)Request.RwMode;
-						Exist.ModId = LoginUserId;
-						Exist.ModName = LoginUserName;
-						Exist.ModDate = DateTime.Now;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 정보를 수정한다.
+					Exist.DiskPoolId = DiskPoolGuid == Guid.Empty ? null : DiskPoolGuid;
+					if (ServerGuid != Guid.Empty) Exist.ServerId = ServerGuid;
+					Exist.Name = Request.Name;
+					Exist.Path = Request.Path;
+					Exist.State = (EnumDbDiskState)Request.State;
+					Exist.TotalInode = Request.TotalInode;
+					Exist.ReservedInode = Request.ReservedInode;
+					Exist.UsedInode = Request.UsedInode;
+					Exist.TotalSize = Request.TotalSize;
+					Exist.ReservedSize = Request.ReservedSize;
+					Exist.UsedSize = Request.UsedSize;
+					Exist.RwMode = (EnumDbDiskRwMode)Request.RwMode;
+					Exist.ModId = LoginUserId;
+					Exist.ModName = LoginUserName;
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 
-						// 디스크 변경 정보 전송
-						SendMq("*.servers.disks.updated", Exist);
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					// 디스크 변경 정보 전송
+					SendMq(Resource.MQ_DISK_UPDATE, Exist);
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -381,47 +375,48 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
+				// 디스크 상태가 변경되지 않는 경우
+				if (Exist.State == (EnumDbDiskState)State)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_STATE);
+
 				// 기존 디스크 상태가 Good이 아닐때 Good로 변경하는 경우
 				if (Exist.State != EnumDbDiskState.Good && State == EnumDiskState.Good)
 				{
 					// 디스크가 마운트 되어 있는지 확인 요청
-					ResponseData Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, DiskId = Exist.Id, Exist.Path }, 10);
+					ResponseData Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { Exist.ServerId, DiskId = Exist.Id, Exist.Path }, 10);
 
 					// 실패인 경우
 					if (Response.Result != EnumResponseResult.Success)
 						return new ResponseData(EnumResponseResult.Error, Response.Code, Response.Message);
 				}
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.State = (EnumDbDiskState)State;
-						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
-						Exist.ModName = LoginUserName;
-						Exist.ModDate = DateTime.Now;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 정보를 수정한다.
+					Exist.State = (EnumDbDiskState)State;
+					Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
+					Exist.ModName = LoginUserName;
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 
-						// 디스크 상태 수정 전송
-						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State };
-						SendMq("*.servers.disks.state", Message);
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					// 디스크 상태 수정 전송
+					var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State, Exist.Path };
+					SendMq(Resource.MQ_DISK_STATUS, Message);
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -465,62 +460,58 @@ namespace PortalProvider.Providers.DiskGuids
 				// 임계값을 가져온다.
 				var Threshold = await GetThreshold();
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.TotalInode = Request.TotalInode;
-						Exist.ReservedInode = Request.ReservedInode;
-						Exist.UsedInode = Request.UsedInode;
-						Exist.TotalSize = Request.TotalSize;
-						Exist.ReservedSize = Request.ReservedSize;
-						Exist.UsedSize = Request.UsedSize;
-						Exist.Read = Request.Read;
-						Exist.Write = Request.Write;
-						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
-						Exist.ModName = LoginUserName;
-						Exist.ModDate = DateTime.Now;
+					// 정보를 수정한다.
+					Exist.TotalInode = Request.TotalInode;
+					Exist.ReservedInode = Request.ReservedInode;
+					Exist.UsedInode = Request.UsedInode;
+					Exist.TotalSize = Request.TotalSize;
+					Exist.ReservedSize = Request.ReservedSize;
+					Exist.UsedSize = Request.UsedSize;
+					Exist.Read = Request.Read;
+					Exist.Write = Request.Write;
+					Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
+					Exist.ModName = LoginUserName;
 
-						// 사용정보 추가
-						m_dbContext.DiskUsages.Add(new DiskUsage()
-						{
-							Id = DiskGuid,
-							RegDate = DateTime.Now,
-							UsedInode = Request.UsedInode,
-							UsedSize = Request.UsedSize,
-							Read = Request.Read,
-							Write = Request.Write,
-						});
+					// 사용정보 추가
+					m_dbContext.DiskUsages.Add(new DiskUsage()
+					{
+						Id = DiskGuid,
+						RegDate = DateTime.Now,
+						UsedInode = Request.UsedInode,
+						UsedSize = Request.UsedSize,
+						Read = Request.Read,
+						Write = Request.Write,
+					});
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
+					Result.Result = EnumResponseResult.Success;
+
+					var FreeSize = Exist.TotalSize - Exist.UsedSize - Exist.ReservedSize;
+
+					// 디스크가 Good이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskWeak 사이즈 보다 작을 경우 디스크의 상태를 Weak로 변경
+					if (Exist.State == EnumDbDiskState.Good && Exist.TotalSize > 0 && FreeSize < Threshold.Data.ThresholdDiskWeak) Exist.State = EnumDbDiskState.Weak;
+
+					// 디스크가 Weak이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskGood 사이즈 보다 클 경우 디스크의 상태를 Good로 변경
+					if (Exist.State == EnumDbDiskState.Weak && Exist.TotalSize > 0 && FreeSize > Threshold.Data.ThresholdDiskGood) Exist.State = EnumDbDiskState.Good;
+
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
+					{
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
-						Result.Result = EnumResponseResult.Success;
-
-
-						var FreeSize = Exist.TotalSize - Exist.UsedSize - Exist.ReservedSize;
-
-						// 디스크가 Good이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskWeak 사이즈 보다 작을 경우 디스크의 상태를 Weak로 변경
-						if (Exist.State == EnumDbDiskState.Good && Exist.TotalSize > 0 && FreeSize < Threshold.Data.ThresholdDiskWeak) Exist.State = EnumDbDiskState.Weak;
-
-						// 디스크가 Weak이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskGood 사이즈 보다 클 경우 디스크의 상태를 Good로 변경
-						if (Exist.State == EnumDbDiskState.Weak && Exist.TotalSize > 0 && FreeSize > Threshold.Data.ThresholdDiskGood) Exist.State = EnumDbDiskState.Good;
-
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-						{
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-							SendMq("*.servers.disks.state", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State });
-						}
+						SendMq(Resource.MQ_DISK_STATUS, new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State, Exist.Path });
 					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -562,37 +553,137 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 수정한다.
+					Exist.RwMode = (EnumDbDiskRwMode)DiskRwMode;
+					Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
+					Exist.ModName = LoginUserName;
+
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+					await Transaction.CommitAsync();
+
+					Result.Result = EnumResponseResult.Success;
+
+					// 수정된 R/W 모드 정보 전송
+					var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, RwMode = (EnumDiskRwMode)Exist.RwMode };
+					SendMq("*.servers.disks.rwmode", Message);
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+		/// <summary>디스크 삭제 모드 수정</summary>
+		/// <param name="Id">디스크 아이디 / 이름</param>
+		/// <param name="DiskDeleting">디스크 읽기/쓰기 모드</param>
+		/// <returns>디스크 삭제 모드 수정 결과 객체</returns>
+		public async Task<ResponseData> UpdateDeleteMode(string Id, bool DiskDeleting)
+		{
+			var Result = new ResponseData();
+
+			try
+			{
+				// 아이디가 유효하지 않은 경우
+				if (Id.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
+
+				// 해당 정보를 가져온다.
+				Disk Exist = null;
+
+				// 아이디로 가져올 경우
+				if (Guid.TryParse(Id, out Guid DiskGuid))
+					Exist = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Id == DiskGuid);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Name == Id);
+
+				// 해당 정보가 존재하지 않는 경우
+				if (Exist == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
+
+				// 디스크 상태가 Good가 아닌 경우
+				if (Exist.State != EnumDbDiskState.Good)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_STATE);
+
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				bool IsChanged = false;
+				try
+				{
+					// 삭제모드를 활성화 하려고 할 경우
+					if (DiskDeleting)
 					{
-						// 정보를 수정한다.
-						Exist.RwMode = (EnumDbDiskRwMode)DiskRwMode;
-						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
-						Exist.ModName = LoginUserName;
-						Exist.ModDate = DateTime.Now;
+						// 현재 디스크 상태를 확인한다.
+						var Disks = await m_dbContext.Disks.Where(i => i.RwMode == EnumDbDiskRwMode.ReadOnly).ToListAsync();
 
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						// 디스크 목록을 불러왔을 경우 Deleting 상태인 디스크가 있는지 확인한다.
+						if (Disks != null && Disks.Count == 0)
+						{
+							Exist.RwMode = EnumDbDiskRwMode.ReadOnly;
+							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
+							Exist.ModName = LoginUserName;
+							Result.Result = EnumResponseResult.Success;
+							IsChanged = true;
+						}
+						else
+						{
+							Result.Result = EnumResponseResult.Error;
+							Result.Code = Resource.EC_COMMON__INVALID_REQUEST;
+						}
+					}
+					else
+					{
+						if (Exist.RwMode == EnumDbDiskRwMode.ReadOnly)
+						{
+							// 정보를 수정한다.
+							Exist.RwMode = EnumDbDiskRwMode.ReadWrite;
+							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
+							Exist.ModName = LoginUserName;
+							Result.Result = EnumResponseResult.Success;
 
-						await Transaction.CommitAsync();
+							IsChanged = true;
+						}
+					}
 
-						Result.Result = EnumResponseResult.Success;
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
+					// 데이터가 변경된 경우 전송
+					if (IsChanged)
+					{
 						// 수정된 R/W 모드 정보 전송
 						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, RwMode = (EnumDiskRwMode)Exist.RwMode };
 						SendMq("*.servers.disks.rwmode", Message);
 					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -637,30 +728,28 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist.DiskPool != null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REMOVE_AFTER_REMOVING_DISKPOOL);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 해당 데이터 삭제
-						m_dbContext.Disks.Remove(Exist);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 해당 데이터 삭제
+					m_dbContext.Disks.Remove(Exist);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 
-						// 삭제된 디스크 정보 전송
-						SendMq("*.servers.disks.removed", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name });
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					// 삭제된 디스크 정보 전송
+					SendMq(Resource.MQ_DISK_REMOVE, new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name });
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)
@@ -687,10 +776,10 @@ namespace PortalProvider.Providers.DiskGuids
 		/// <returns>디스크 목록 객체</returns>
 		public async Task<ResponseList<ResponseDisk>> GetList(
 			string ServerId,
-			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
+			List<EnumDiskState> SearchStates = null, List<EnumDiskRwMode> SearchRwModes = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Result = new ResponseList<ResponseDisk>();
@@ -698,8 +787,19 @@ namespace PortalProvider.Providers.DiskGuids
 			try
 			{
 				// 서버 아이디가 존재하지 않는 경우
-				if (ServerId.IsEmpty() || !Guid.TryParse(ServerId, out Guid ServerGuid))
+				if (ServerId.IsEmpty())
 					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
+
+				// 서버 정보를 가져온다.
+				Server Server = null;
+				if (Guid.TryParse(ServerId, out Guid ServerGuid))
+					Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == ServerGuid);
+				else
+					Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == ServerId);
+
+				// 서버가 존재하지 않는 경우
+				if (Server == null)
+					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EC_COMMON__NOT_FOUND);
 
 				// 기본 정렬 정보 추가
 				ClearDefaultOrders();
@@ -714,7 +814,7 @@ namespace PortalProvider.Providers.DiskGuids
 
 				// 목록을 가져온다.
 				Result.Data = await m_dbContext.Disks.AsNoTracking()
-					.Where(i => i.ServerId == ServerGuid
+					.Where(i => i.ServerId == Server.Id
 						&& (
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
 							|| (SearchFields.Contains("path") && i.Path.Contains(SearchKeyword))
@@ -763,10 +863,10 @@ namespace PortalProvider.Providers.DiskGuids
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 목록 객체</returns>
 		public async Task<ResponseList<ResponseDisk>> GetList(
-			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
+			List<EnumDiskState> SearchStates = null, List<EnumDiskRwMode> SearchRwModes = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
+			List<string> SearchFields = null, string SearchKeyword = null
 		)
 		{
 			var Result = new ResponseList<ResponseDisk>();
@@ -881,12 +981,31 @@ namespace PortalProvider.Providers.DiskGuids
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 아이디</param>
 		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		public async Task<bool> IsNameExist(string Name, Guid? ExceptId = null)
+		public async Task<bool> IsExistName(string Name, Guid? ExceptId = null)
 		{
 			try
 			{
 				// 동일한 이름이 존재하는지 확인한다.
 				return await m_dbContext.Disks.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return false;
+		}
+
+		
+		/// <summary> 해당 Id가 존재하는지 여부 </summary>
+		/// <param name="Id">검색할 Id</param>
+		/// <returns>해당 Id가 존재하는지 여부</returns>
+		public async Task<bool> IsExistId(Guid Id)
+		{
+			try
+			{
+				// 동일한 Id가 존재하는지 확인한다.
+				return await m_dbContext.Disks.AsNoTracking().AnyAsync(i => i.Id == Id);
 			}
 			catch (Exception ex)
 			{
@@ -918,7 +1037,7 @@ namespace PortalProvider.Providers.DiskGuids
 
 				if (DiskGoodConfig != null && long.TryParse(DiskGoodConfig.Value, out long ThresholdDiskGood)) Result.Data.ThresholdDiskGood = ThresholdDiskGood;
 				else Result.Data.ThresholdDiskGood = DEFAULT_THRESHOLD_DISK_GOOD;
-				if (DiskWeakConfig != null && long.TryParse(DiskGoodConfig.Value, out long ThresholdDiskWeak)) Result.Data.ThresholdDiskWeak = ThresholdDiskWeak;
+				if (DiskWeakConfig != null && long.TryParse(DiskWeakConfig.Value, out long ThresholdDiskWeak)) Result.Data.ThresholdDiskWeak = ThresholdDiskWeak;
 				else Result.Data.ThresholdDiskWeak = DEFAULT_THRESHOLD_DISK_WEAK;
 
 				Result.Result = EnumResponseResult.Success;
@@ -947,45 +1066,43 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Request.ThresholdDiskGood < 1 || Request.ThresholdDiskWeak < 1 || Request.ThresholdDiskGood < Request.ThresholdDiskWeak)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON_THRESHOLD_INVALID);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 해당 정보를 가져온다.
-						var DiskGoodConfig = await m_dbContext.Configs.FirstOrDefaultAsync(i => i.Key == THRESHOLD_DISK_GOOD);
-						var DiskWeakConfig = await m_dbContext.Configs.FirstOrDefaultAsync(i => i.Key == THRESHOLD_DISK_WEAK);
+					// 해당 정보를 가져온다.
+					var DiskGoodConfig = await m_dbContext.Configs.FirstOrDefaultAsync(i => i.Key == THRESHOLD_DISK_GOOD);
+					var DiskWeakConfig = await m_dbContext.Configs.FirstOrDefaultAsync(i => i.Key == THRESHOLD_DISK_WEAK);
 
-						// 해당 정보가 존재하지 않는 경우 추가한다.
-						if (DiskGoodConfig == null)
-							await m_dbContext.Configs.AddAsync(new Config() { Key = THRESHOLD_DISK_GOOD, Value = Request.ThresholdDiskGood.ToString() });
-						// 존재할 경우 수정한다.
-						else
-							DiskGoodConfig.Value = Request.ThresholdDiskGood.ToString();
+					// 해당 정보가 존재하지 않는 경우 추가한다.
+					if (DiskGoodConfig == null)
+						await m_dbContext.Configs.AddAsync(new Config() { Key = THRESHOLD_DISK_GOOD, Value = Request.ThresholdDiskGood.ToString() });
+					// 존재할 경우 수정한다.
+					else
+						DiskGoodConfig.Value = Request.ThresholdDiskGood.ToString();
 
-						// 해당 정보가 존재하지 않는 경우 추가한다.
-						if (DiskWeakConfig == null)
-							await m_dbContext.Configs.AddAsync(new Config() { Key = THRESHOLD_DISK_WEAK, Value = Request.ThresholdDiskWeak.ToString() });
-						// 존재할 경우 수정한다.
-						else
-							DiskWeakConfig.Value = Request.ThresholdDiskWeak.ToString();
+					// 해당 정보가 존재하지 않는 경우 추가한다.
+					if (DiskWeakConfig == null)
+						await m_dbContext.Configs.AddAsync(new Config() { Key = THRESHOLD_DISK_WEAK, Value = Request.ThresholdDiskWeak.ToString() });
+					// 존재할 경우 수정한다.
+					else
+						DiskWeakConfig.Value = Request.ThresholdDiskWeak.ToString();
 
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 데이터가 변경된 경우 저장
+					if (m_dbContext.HasChanges())
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await Transaction.CommitAsync();
+					await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 			}
 			catch (Exception ex)

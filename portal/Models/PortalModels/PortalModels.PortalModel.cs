@@ -1,14 +1,4 @@
-﻿/*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -305,12 +295,9 @@ namespace PortalModels
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.IsManagement).HasColumnName(@"IS_MANAGEMENT").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Rx).HasColumnName(@"RX").ValueGeneratedNever().HasMaxLength(12).HasDefaultValueSql(@"0");
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Tx).HasColumnName(@"TX").ValueGeneratedNever().HasMaxLength(12).HasDefaultValueSql(@"0");
-			modelBuilder.Entity<NetworkInterface>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
-			modelBuilder.Entity<NetworkInterface>().Property(x => x.RegName).HasColumnName(@"REG_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<NetworkInterface>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<NetworkInterface>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<NetworkInterface>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<NetworkInterface>().HasKey(@"Id");
 		}
 
@@ -329,12 +316,9 @@ namespace PortalModels
 			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.IpAddress).HasColumnName(@"IP_ADDRESS").ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.SubnetMask).HasColumnName(@"SUBNET_MASK").ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.Gateway).HasColumnName(@"GATEWAY").ValueGeneratedNever();
-			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
-			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.RegName).HasColumnName(@"REG_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<NetworkInterfaceVlan>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<NetworkInterfaceVlan>().HasKey(@"Id");
 		}
 
@@ -359,12 +343,9 @@ namespace PortalModels
 			modelBuilder.Entity<Service>().Property(x => x.MemoryTotal).HasColumnName(@"MEMORY_TOTAL").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Service>().Property(x => x.MemoryUsed).HasColumnName(@"MEMORY_USED").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Service>().Property(x => x.ThreadCount).HasColumnName(@"THREAD_COUNT").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
-			modelBuilder.Entity<Service>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
-			modelBuilder.Entity<Service>().Property(x => x.RegName).HasColumnName(@"REG_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<Service>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<Service>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<Service>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<Service>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<Service>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<Service>().HasKey(@"Id");
 			modelBuilder.Entity<Service>().HasIndex(@"Name").IsUnique(true);
 		}
@@ -394,6 +375,7 @@ namespace PortalModels
 			modelBuilder.Entity<Server>().ToTable(@"SERVERS");
 			modelBuilder.Entity<Server>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Server>().Property(x => x.HostName).HasColumnName(@"HOST_NAME").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.Description).HasColumnName(@"DESCRIPTION").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.CpuModel).HasColumnName(@"CPU_MODEL").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.Clock).HasColumnName(@"CLOCK").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -406,7 +388,7 @@ namespace PortalModels
 			modelBuilder.Entity<Server>().Property(x => x.MemoryUsed).HasColumnName(@"MEMORY_USED").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Server>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<Server>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<Server>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<Server>().HasKey(@"Id");
 			modelBuilder.Entity<Server>().HasIndex(@"Name").IsUnique(true);
 		}
@@ -425,12 +407,9 @@ namespace PortalModels
 			modelBuilder.Entity<ServiceGroup>().Property(x => x.Description).HasColumnName(@"DESCRIPTION").ValueGeneratedNever();
 			modelBuilder.Entity<ServiceGroup>().Property(x => x.ServiceType).HasColumnName(@"SERVICE_TYPE").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<ServiceGroup>().Property(x => x.ServiceIpAddress).HasColumnName(@"SERVICE_IP_ADDRESS").ValueGeneratedNever();
-			modelBuilder.Entity<ServiceGroup>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
-			modelBuilder.Entity<ServiceGroup>().Property(x => x.RegName).HasColumnName(@"REG_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<ServiceGroup>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<ServiceGroup>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<ServiceGroup>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<ServiceGroup>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<ServiceGroup>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<ServiceGroup>().HasKey(@"Id");
 		}
 
@@ -476,7 +455,7 @@ namespace PortalModels
 			modelBuilder.Entity<SystemLog>().ToTable(@"SYSTEM_LOGS");
 			modelBuilder.Entity<SystemLog>().Property(x => x.LogId).HasColumnName(@"LOG_ID").IsRequired().ValueGeneratedOnAdd().HasPrecision(20, 0);
 			modelBuilder.Entity<SystemLog>().Property(x => x.LogLevel).HasColumnName(@"LOG_LEVEL").IsRequired().ValueGeneratedNever().HasPrecision(6, 0);
-			modelBuilder.Entity<SystemLog>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<SystemLog>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<SystemLog>().Property(x => x.Message).HasColumnName(@"MESSAGE").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<SystemLog>().HasKey(@"LogId");
 			modelBuilder.Entity<SystemLog>().HasIndex(@"LogId").IsUnique(true);
@@ -498,7 +477,7 @@ namespace PortalModels
 			modelBuilder.Entity<AllowedConnectionIp>().Property(x => x.EndAddress).HasColumnName(@"END_ADDRESS").IsRequired().ValueGeneratedNever().HasPrecision(20, 0);
 			modelBuilder.Entity<AllowedConnectionIp>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
 			modelBuilder.Entity<AllowedConnectionIp>().Property(x => x.RegName).HasColumnName(@"REG_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(1000);
-			modelBuilder.Entity<AllowedConnectionIp>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<AllowedConnectionIp>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<AllowedConnectionIp>().HasKey(@"Id");
 		}
 
@@ -648,7 +627,7 @@ namespace PortalModels
 			modelBuilder.Entity<UserActionLog>().Property(x => x.Message).HasColumnName(@"MESSAGE").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<UserActionLog>().Property(x => x.UserId).HasColumnName(@"USER_ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<UserActionLog>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(1000);
-			modelBuilder.Entity<UserActionLog>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<UserActionLog>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<UserActionLog>().HasKey(@"LogId");
 			modelBuilder.Entity<UserActionLog>().HasIndex(@"LogId").IsUnique(true);
 		}
@@ -666,12 +645,9 @@ namespace PortalModels
 			modelBuilder.Entity<Disk>().Property(x => x.ServerId).HasColumnName(@"SERVER_ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.DiskPoolId).HasColumnName(@"DISK_POOL_ID").ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<Disk>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
-			modelBuilder.Entity<Disk>().Property(x => x.RegName).HasColumnName(@"REG_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<Disk>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<Disk>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<Disk>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<Disk>().Property(x => x.Path).HasColumnName(@"PATH").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.State).HasColumnName(@"STATE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"-2");
 			modelBuilder.Entity<Disk>().Property(x => x.TotalInode).HasColumnName(@"TOTAL_INODE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -699,12 +675,9 @@ namespace PortalModels
 			modelBuilder.Entity<DiskPool>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<DiskPool>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<DiskPool>().Property(x => x.Description).HasColumnName(@"DESCRIPTION").ValueGeneratedNever();
-			modelBuilder.Entity<DiskPool>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
-			modelBuilder.Entity<DiskPool>().Property(x => x.RegName).HasColumnName(@"REG_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<DiskPool>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<DiskPool>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<DiskPool>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
-			modelBuilder.Entity<DiskPool>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<DiskPool>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<DiskPool>().Property(x => x.DiskPoolType).HasColumnName(@"DISK_POOL_TYPE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<DiskPool>().Property(x => x.ReplicationType).HasColumnName(@"REPLICATION_TYPE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"1");
 			modelBuilder.Entity<DiskPool>().Property(x => x.DefaultDiskPool).HasColumnName(@"DEFAULT_DISK_POOL").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"false");
@@ -722,7 +695,7 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<ServerUsage>().ToTable(@"SERVER_USAGES");
 			modelBuilder.Entity<ServerUsage>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<ServerUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<ServerUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<ServerUsage>().Property(x => x.LoadAverage1M).HasColumnName(@"LOAD_AVERAGE1M").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<ServerUsage>().Property(x => x.LoadAverage5M).HasColumnName(@"LOAD_AVERAGE5M").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<ServerUsage>().Property(x => x.LoadAverage15M).HasColumnName(@"LOAD_AVERAGE15M").ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -741,7 +714,7 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<NetworkInterfaceUsage>().ToTable(@"NETWORK_INTERFACE_USAGES");
 			modelBuilder.Entity<NetworkInterfaceUsage>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<NetworkInterfaceUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<NetworkInterfaceUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<NetworkInterfaceUsage>().Property(x => x.BandWidth).HasColumnName(@"BAND_WIDTH").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<NetworkInterfaceUsage>().Property(x => x.Rx).HasColumnName(@"RX").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<NetworkInterfaceUsage>().Property(x => x.Tx).HasColumnName(@"TX").ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -758,7 +731,7 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<ServiceUsage>().ToTable(@"SERVICE_USAGES");
 			modelBuilder.Entity<ServiceUsage>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<ServiceUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<ServiceUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<ServiceUsage>().Property(x => x.CpuUsage).HasColumnName(@"CPU_USAGE").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<ServiceUsage>().Property(x => x.MemoryTotal).HasColumnName(@"MEMORY_TOTAL").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<ServiceUsage>().Property(x => x.MemoryUsed).HasColumnName(@"MEMORY_USED").ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -778,7 +751,7 @@ namespace PortalModels
 			modelBuilder.Entity<ServiceConfig>().Property(x => x.Type).HasColumnName(@"TYPE").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<ServiceConfig>().Property(x => x.Version).HasColumnName(@"VERSION").IsRequired().ValueGeneratedOnAdd();
 			modelBuilder.Entity<ServiceConfig>().Property(x => x.Config).HasColumnName(@"CONFIG").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<ServiceConfig>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<ServiceConfig>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<ServiceConfig>().Property(x => x.LastVersion).HasColumnName(@"LAST_VERSION").IsRequired().ValueGeneratedNever().HasPrecision(1, 0).HasDefaultValueSql(@"1");
 			modelBuilder.Entity<ServiceConfig>().HasKey(@"Type", @"Version");
 		}
@@ -828,7 +801,7 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<DiskUsage>().ToTable(@"DISK_USAGES");
 			modelBuilder.Entity<DiskUsage>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<DiskUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<DiskUsage>().Property(x => x.UsedInode).HasColumnName(@"USED_INODE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<DiskUsage>().Property(x => x.UsedSize).HasColumnName(@"USED_SIZE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<DiskUsage>().Property(x => x.Read).HasColumnName(@"READ").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -864,7 +837,7 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<ServiceEventLog>().ToTable(@"SERVICE_EVENT_LOGS");
 			modelBuilder.Entity<ServiceEventLog>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<ServiceEventLog>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<ServiceEventLog>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"NOW()");
 			modelBuilder.Entity<ServiceEventLog>().Property(x => x.EventType).HasColumnName(@"EVENT_TYPE").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<ServiceEventLog>().Property(x => x.Message).HasColumnName(@"MESSAGE").ValueGeneratedNever();
 			modelBuilder.Entity<ServiceEventLog>().HasKey(@"Id", @"RegDate");
@@ -1138,9 +1111,9 @@ namespace PortalModels
 			modelBuilder.Entity<S3AccessIp>().Property(x => x.StartIpNo).HasColumnName(@"START_IP_NO").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<S3AccessIp>().Property(x => x.EndIpNo).HasColumnName(@"END_IP_NO").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<S3AccessIp>().Property(x => x.IpAddress).HasColumnName(@"IP_ADDRESS").IsRequired().ValueGeneratedNever().HasMaxLength(100);
-			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegName).HasColumnName(@"REG_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(400);
-			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegId).HasColumnName(@"REG_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").IsRequired().ValueGeneratedOnAddOrUpdate().HasDefaultValueSql(@"NOW()");
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedNever().HasMaxLength(400);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<S3AccessIp>().HasKey(@"AddressId");
 		}
 
@@ -1153,17 +1126,14 @@ namespace PortalModels
 			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.Server).WithMany(op => op.NetworkInterfaces).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.ModUser).WithMany(op => op.ModNetworkInterfaces).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<NetworkInterface>().HasMany(x => x.NetworkInterfaceVlans).WithOne(op => op.NetworkInterface).HasForeignKey(@"InterfaceId").IsRequired(true);
-			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.RegUser).WithMany(op => op.RegNetworkInterfaces).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<NetworkInterface>().HasMany(x => x.NetworkInterfaceUsages).WithOne(op => op.NetworkInterface).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
-			modelBuilder.Entity<NetworkInterfaceVlan>().HasOne(x => x.RegUser).WithMany(op => op.RegNetworkInterfaceVlans).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<NetworkInterfaceVlan>().HasOne(x => x.ModUser).WithMany(op => op.ModNetworkInterfaceVlans).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<NetworkInterfaceVlan>().HasOne(x => x.NetworkInterface).WithMany(op => op.NetworkInterfaceVlans).HasForeignKey(@"InterfaceId").IsRequired(true);
 			modelBuilder.Entity<NetworkInterfaceVlan>().HasMany(x => x.ServiceNetworkInterfaceVlans).WithOne(op => op.NetworkInterfaceVlan).HasForeignKey(@"VlanId").IsRequired(true);
 
 			modelBuilder.Entity<Service>().HasMany(x => x.Vlans).WithOne(op => op.Service).HasForeignKey(@"ServiceId").IsRequired(true);
 			modelBuilder.Entity<Service>().HasOne(x => x.ServiceGroup).WithMany(op => op.Services).HasForeignKey(@"GroupId").IsRequired(false);
-			modelBuilder.Entity<Service>().HasOne(x => x.RegUser).WithMany(op => op.RegServices).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<Service>().HasOne(x => x.ModUser).WithMany(op => op.ModServices).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<Service>().HasMany(x => x.ServiceUsages).WithOne(op => op.Service).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 			modelBuilder.Entity<Service>().HasOne(x => x.Server).WithMany(op => op.Services).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"ServerId").IsRequired(true);
@@ -1179,7 +1149,6 @@ namespace PortalModels
 			modelBuilder.Entity<Server>().HasMany(x => x.Services).WithOne(op => op.Server).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"ServerId").IsRequired(true);
 
 			modelBuilder.Entity<ServiceGroup>().HasMany(x => x.Services).WithOne(op => op.ServiceGroup).HasForeignKey(@"GroupId").IsRequired(false);
-			modelBuilder.Entity<ServiceGroup>().HasOne(x => x.RegUser).WithMany(op => op.RegServiceGroups).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<ServiceGroup>().HasOne(x => x.ModUser).WithMany(op => op.ModServiceGroups).HasForeignKey(@"ModId").IsRequired(false);
 
 			modelBuilder.Entity<AllowedConnectionIp>().HasOne(x => x.Role).WithMany(op => op.AllowedConnectionIps).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"RoleId").IsRequired(false);
@@ -1203,25 +1172,25 @@ namespace PortalModels
 			modelBuilder.Entity<User>().HasMany(x => x.UserActionLogs).WithOne(op => op.User).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"UserId").IsRequired(true);
 			modelBuilder.Entity<User>().HasMany(x => x.UserClaims).WithOne(op => op.User).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"UserId").IsRequired(true);
 			modelBuilder.Entity<User>().HasMany(x => x.UserLoginHistories).WithOne(op => op.User).HasForeignKey(@"Id").IsRequired(true);
-			modelBuilder.Entity<User>().HasMany(x => x.RegServiceGroups).WithOne(op => op.RegUser).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<User>().HasMany(x => x.ModServiceGroups).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
-			modelBuilder.Entity<User>().HasMany(x => x.RegServices).WithOne(op => op.RegUser).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<User>().HasMany(x => x.ModServices).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
-			modelBuilder.Entity<User>().HasMany(x => x.RegNetworkInterfaceVlans).WithOne(op => op.RegUser).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<User>().HasMany(x => x.ModNetworkInterfaceVlans).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<User>().HasMany(x => x.ModNetworkInterfaces).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<User>().HasMany(x => x.ModServers).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
-			modelBuilder.Entity<User>().HasMany(x => x.RegNetworkInterfaces).WithOne(op => op.RegUser).HasForeignKey(@"RegId").IsRequired(false);
+			modelBuilder.Entity<User>().HasMany(x => x.ModDiskPool).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
+			modelBuilder.Entity<User>().HasMany(x => x.ModAccessIps).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
+			modelBuilder.Entity<User>().HasMany(x => x.ModDisks).WithOne(op => op.ModUser).HasForeignKey(@"ModId").IsRequired(false);
 
 			modelBuilder.Entity<UserActionLog>().HasOne(x => x.User).WithMany(op => op.UserActionLogs).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"UserId").IsRequired(true);
 
 			modelBuilder.Entity<Disk>().HasOne(x => x.Server).WithMany(op => op.Disks).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<Disk>().HasOne(x => x.DiskPool).WithMany(op => op.Disks).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<Disk>().HasMany(x => x.DiskUsages).WithOne(op => op.Disk).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<Disk>().HasOne(x => x.ModUser).WithMany(op => op.ModDisks).HasForeignKey(@"ModId").IsRequired(false);
 
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.Disks).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.UserDiskPools).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(true);
-			modelBuilder.Entity<DiskPool>().HasOne(x => x.EC).WithOne(op => op.DiskPool).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(false);
+			modelBuilder.Entity<DiskPool>().HasOne(x => x.ModUser).WithMany(op => op.ModDiskPool).HasForeignKey(@"ModId").IsRequired(false);
 
 			modelBuilder.Entity<ServerUsage>().HasOne(x => x.Server).WithMany(op => op.ServerUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
@@ -1239,6 +1208,8 @@ namespace PortalModels
 			modelBuilder.Entity<ServiceEventLog>().HasOne(x => x.Service).WithMany(op => op.ServiceEventLogs).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<DiskPoolEC>().HasOne(x => x.DiskPool).WithOne(op => op.EC).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(true);
+
+			modelBuilder.Entity<S3AccessIp>().HasOne(x => x.ModUser).WithMany(op => op.ModAccessIps).HasForeignKey(@"ModId").IsRequired(false);
 		}
 
 		partial void CustomizeMapping(ref ModelBuilder modelBuilder);

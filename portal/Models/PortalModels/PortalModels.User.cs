@@ -30,15 +30,14 @@ namespace PortalModels
 			this.UserActionLogs = new List<UserActionLog>();
 			this.UserClaims = new List<UserClaim>();
 			this.UserLoginHistories = new List<UserLoginHistory>();
-			this.RegServiceGroups = new List<ServiceGroup>();
 			this.ModServiceGroups = new List<ServiceGroup>();
-			this.RegServices = new List<Service>();
 			this.ModServices = new List<Service>();
-			this.RegNetworkInterfaceVlans = new List<NetworkInterfaceVlan>();
 			this.ModNetworkInterfaceVlans = new List<NetworkInterfaceVlan>();
 			this.ModNetworkInterfaces = new List<NetworkInterface>();
 			this.ModServers = new List<Server>();
-			this.RegNetworkInterfaces = new List<NetworkInterface>();
+			this.ModDiskPool = new List<DiskPool>();
+			this.ModAccessIps = new List<S3AccessIp>();
+			this.ModDisks = new List<Disk>();
 			OnCreated();
 		}
 
@@ -112,20 +111,11 @@ namespace PortalModels
 		/// <summary> 사용자 로그인 내역 </summary>
 		public virtual IList<UserLoginHistory> UserLoginHistories { get; set; }
 
-		/// <summary> 등록 서비스 그룹 목록 </summary>
-		public virtual IList<ServiceGroup> RegServiceGroups { get; set; }
-
 		/// <summary> 수정 서비스 그룹 목록 </summary>
 		public virtual IList<ServiceGroup> ModServiceGroups { get; set; }
 
-		/// <summary> 등록 서비스 목록 </summary>
-		public virtual IList<Service> RegServices { get; set; }
-
 		/// <summary> 수정 서비스 목록 </summary>
 		public virtual IList<Service> ModServices { get; set; }
-
-		/// <summary> 등록 네트워크 인터페이스 VLAN 목록 </summary>
-		public virtual IList<NetworkInterfaceVlan> RegNetworkInterfaceVlans { get; set; }
 
 		/// <summary> 수정 네트워크 인터페이스 VLAN 목록 </summary>
 		public virtual IList<NetworkInterfaceVlan> ModNetworkInterfaceVlans { get; set; }
@@ -136,8 +126,11 @@ namespace PortalModels
 		/// <summary> 수정 서버 목록 </summary>
 		public virtual IList<Server> ModServers { get; set; }
 
-		/// <summary> 등록 네트워크 인터페이스 목록 </summary>
-		public virtual IList<NetworkInterface> RegNetworkInterfaces { get; set; }
+		public virtual IList<DiskPool> ModDiskPool { get; set; }
+
+		public virtual IList<S3AccessIp> ModAccessIps { get; set; }
+
+		public virtual IList<Disk> ModDisks { get; set; }
 
 		#region Extensibility Method Definitions
 

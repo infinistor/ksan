@@ -96,7 +96,7 @@ namespace PortalProvider.Providers.Services
 			{
 				// 해당 정보를 가져온다.
 				Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
-					.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.LastVersion == true)
+					.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.LastVersion)
 					.OrderByDescending(i => i.Version)
 					.FirstOrDefaultAsync<ServiceConfig, ResponseServiceConfig>();
 
@@ -171,39 +171,37 @@ namespace PortalProvider.Providers.Services
 				if (string.IsNullOrEmpty(Config))
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 정보를 생성한다.
+					var NewData = new ServiceConfig()
 					{
-						// 정보를 생성한다.
-						var NewData = new ServiceConfig()
-						{
-							Type = (EnumDbServiceType)ServiceType,
-							Config = Config,
-							RegDate = DateTime.Now,
-							LastVersion = false,
-						};
+						Type = (EnumDbServiceType)ServiceType,
+						Config = Config,
+						RegDate = DateTime.Now,
+						LastVersion = false,
+					};
 
-						// 저장
-						await m_dbContext.ServiceConfigs.AddAsync(NewData);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
+					// 저장
+					await m_dbContext.ServiceConfigs.AddAsync(NewData);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
-						Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
-							.Where(i => i.Type == (EnumDbServiceType)ServiceType)
-							.OrderByDescending(i => i.Version)
-							.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						Transaction.Rollback();
+					Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
+						.Where(i => i.Type == (EnumDbServiceType)ServiceType)
+						.OrderByDescending(i => i.Version)
+						.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					Transaction.Rollback();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 
 			}
@@ -239,42 +237,40 @@ namespace PortalProvider.Providers.Services
 				if (MyVersion.LastVersion)
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_UPDATE, Resource.EM_CONFIGS_ALREADY_LAST_VERSION);
 
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var Transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
+					// 입력된 버전을 제외한 나머지 버전을 이전버전으로 변경
+					var Items = await m_dbContext.ServiceConfigs.Where(i => i.Type == (EnumDbServiceType)ServiceType).CreateListAsync();
+					foreach (var Item in Items.Items)
 					{
-						// 입력된 버전을 제외한 나머지 버전을 이전버전으로 변경
-						var Items = await m_dbContext.ServiceConfigs.Where(i => i.Type == (EnumDbServiceType)ServiceType).CreateListAsync();
-						foreach (var Item in Items.Items)
-						{
-							if (Item.Version == Version) Item.LastVersion = true;
-							else Item.LastVersion = false;
-						}
-
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
-
-						var NewData = new ResponseUpdateConfig()
-						{
-							Version = MyVersion.Version,
-							RegDate = MyVersion.RegDate,
-						};
-
-						Result.Data = NewData;
-						Result.Result = EnumResponseResult.Success;
-
-						// Config 변경 알림
-						SendMq($"*.services.{ServiceType.ToString().Substring(4).ToLower()}.config.updated", NewData);
+						if (Item.Version == Version) Item.LastVersion = true;
+						else Item.LastVersion = false;
 					}
-					catch (Exception ex)
+
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
+
+					var NewData = new ResponseUpdateConfig()
 					{
-						Transaction.Rollback();
+						Version = MyVersion.Version,
+						RegDate = MyVersion.RegDate,
+					};
 
-						NNException.Log(ex);
+					Result.Data = NewData;
+					Result.Result = EnumResponseResult.Success;
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					// Config 변경 알림
+					SendMq($"*.services.{ServiceType.ToString()[4..].ToLower()}.config.updated", NewData);
+				}
+				catch (Exception ex)
+				{
+					Transaction.Rollback();
+
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 
 			}
@@ -308,27 +304,25 @@ namespace PortalProvider.Providers.Services
 				// 해당 버전이 최신버전일 경우 삭제 불가
 				if (MyVersion.LastVersion) return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_DELETE_MAY_BE_IN_USE, Resource.EM_CONFIGS_LIST_VERSION_CANNOT_DELETE);
 
-				using (var transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using var transaction = await m_dbContext.Database.BeginTransactionAsync();
+				try
 				{
-					try
-					{
-						// 해당 데이터 삭제
-						m_dbContext.ServiceConfigs.Remove(MyVersion);
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					// 해당 데이터 삭제
+					m_dbContext.ServiceConfigs.Remove(MyVersion);
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						// 저장
-						await transaction.CommitAsync();
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						transaction.Rollback();
+					// 저장
+					await transaction.CommitAsync();
+					Result.Result = EnumResponseResult.Success;
+				}
+				catch (Exception ex)
+				{
+					transaction.Rollback();
 
-						NNException.Log(ex);
+					NNException.Log(ex);
 
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
 				}
 
 			}

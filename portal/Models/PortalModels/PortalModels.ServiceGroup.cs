@@ -43,15 +43,6 @@ namespace PortalModels
 		/// <summary> 서비스 아이피 주소 </summary>
 		public virtual string ServiceIpAddress { get; set; }
 
-		/// <summary> 등록자 아이디 </summary>
-		public virtual Guid? RegId { get; set; }
-
-		/// <summary> 등록자명 </summary>
-		public virtual string RegName { get; set; }
-
-		/// <summary> 등록일시 </summary>
-		public virtual DateTime? RegDate { get; set; }
-
 		/// <summary> 수정자 아이디 </summary>
 		public virtual Guid? ModId { get; set; }
 
@@ -63,9 +54,6 @@ namespace PortalModels
 
 		/// <summary> 서비스 목록 </summary>
 		public virtual IList<Service> Services { get; set; }
-
-		/// <summary> 등록 사용자 정보 </summary>
-		public virtual User RegUser { get; set; }
 
 		/// <summary> 수정 사용자 정보 </summary>
 		public virtual User ModUser { get; set; }

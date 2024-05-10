@@ -19,6 +19,10 @@ namespace PortalProviderInterface
 	/// <summary>S3 프로바이더 인터페이스</summary>
 	public interface IS3Provider : IBaseProvider
 	{
+		/// <summary>버킷에 로깅을 설정한다.</summary>
+		/// <param name="Request">버킷 로깅 정보 요청 객체</param>
+		/// <returns>설정 성공 여부</returns>
+		Task<ResponseData> SetBucketLogging(RequestS3BucketLogging Request);
 
 		/// <summary>접근 아이피 주소를 등록한다.</summary>
 		/// <param name="Request">접근 아이피 주소 정보 요청 객체</param>

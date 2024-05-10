@@ -44,6 +44,8 @@ namespace PortalModels
 		/// <summary> 서버명 </summary>
 		public virtual string Name { get; set; }
 
+		public string HostName { get; set; }
+
 		/// <summary> 설명 </summary>
 		public virtual string Description { get; set; }
 

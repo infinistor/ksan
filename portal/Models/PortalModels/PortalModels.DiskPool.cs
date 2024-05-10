@@ -41,15 +41,6 @@ namespace PortalModels
 		/// <summary> 디스크 Pool 설명 </summary>
 		public virtual string Description { get; set; }
 
-		/// <summary> 등록자 아이디 </summary>
-		public virtual Guid? RegId { get; set; }
-
-		/// <summary> 등록자명 </summary>
-		public virtual string RegName { get; set; }
-
-		/// <summary> 등록일시 </summary>
-		public virtual DateTime? RegDate { get; set; }
-
 		/// <summary> 수정자 아이디 </summary>
 		public virtual Guid? ModId { get; set; }
 
@@ -73,6 +64,8 @@ namespace PortalModels
 		public virtual IList<UserDiskPool> UserDiskPools { get; set; }
 
 		public virtual DiskPoolEC EC { get; set; }
+
+		public virtual User ModUser { get; set; }
 
 		#region Extensibility Method Definitions
 
